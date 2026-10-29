@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 /**
  * Mutable pay reference for an employee. Changing a component recalculates
  * the net. Payments take a snapshot of this record when they are made.
+ * A null effectiveTill means the salary is open-ended (current).
  */
 @Entity
 public class Salary {
@@ -28,8 +29,8 @@ public class Salary {
     @Column(nullable = false)
     private LocalDate effectiveFrom;
 
-    @Column(nullable = false)
-    private LocalDate effectiveTo;
+    @Column
+    private LocalDate effectiveTill;
 
     @Column(nullable = false, length = 3)
     private String currency;
@@ -58,9 +59,9 @@ public class Salary {
         // required by JPA
     }
 
-    public Salary(LocalDate effectiveFrom, LocalDate effectiveTo, String currency, BigDecimal basicSalary, BigDecimal hra, BigDecimal da, BigDecimal tax, BigDecimal epf) {
+    public Salary(LocalDate effectiveFrom, LocalDate effectiveTill, String currency, BigDecimal basicSalary, BigDecimal hra, BigDecimal da, BigDecimal tax, BigDecimal epf) {
         this.effectiveFrom = Objects.requireNonNull(effectiveFrom, "effectiveFrom is required");
-        this.effectiveTo = Objects.requireNonNull(effectiveTo, "effectiveTo is required");
+        this.effectiveTill = validateRange(effectiveFrom, effectiveTill);
         this.currency = validateCurrency(currency);
         this.basicSalary = requireNonNegative(basicSalary, "basicSalary");
         this.hra = requireNonNegative(hra, "hra");
@@ -71,10 +72,33 @@ public class Salary {
     }
 
     /**
+     * True if this salary is in force on the given date. Both ends are inclusive.
+     * An open-ended salary (null effectiveTill) is in force for any date on or after effectiveFrom.
+     */
+    public boolean isEffectiveOn(LocalDate date) {
+        Objects.requireNonNull(date, "date is required");
+        return !date.isBefore(effectiveFrom) && (effectiveTill == null || !date.isAfter(effectiveTill));
+    }
+
+    /**
+     * True if the whole pay period (start and end) falls within this salary's range.
+     */
+    public boolean coversPeriod(LocalDate periodStart, LocalDate periodEnd) {
+        return isEffectiveOn(periodStart) && isEffectiveOn(periodEnd);
+    }
+
+    /**
      * Net = gross - tax - EPF. Stored, and kept in sync on every change.
      */
     private void recalculateNet() {
         this.netSalary = getGrossSalary().subtract(tax).subtract(epf);
+    }
+
+    private static LocalDate validateRange(LocalDate from, LocalDate till) {
+        if (till != null && till.isBefore(from)) {
+            throw new IllegalArgumentException("effectiveTill cannot be before effectiveFrom");
+        }
+        return till;
     }
 
     private static String validateCurrency(String code) {
@@ -113,8 +137,8 @@ public class Salary {
         return effectiveFrom;
     }
 
-    public LocalDate getEffectiveTo() {
-        return effectiveTo;
+    public LocalDate getEffectiveTill() {
+        return effectiveTill;
     }
 
     public String getCurrency() {
@@ -153,11 +177,16 @@ public class Salary {
     }
 
     public void setEffectiveFrom(LocalDate effectiveFrom) {
-        this.effectiveFrom = Objects.requireNonNull(effectiveFrom, "effectiveFrom is required");
+        Objects.requireNonNull(effectiveFrom, "effectiveFrom is required");
+        validateRange(effectiveFrom, this.effectiveTill);
+        this.effectiveFrom = effectiveFrom;
     }
 
-    public void setEffectiveTo(LocalDate effectiveTo) {
-        this.effectiveTo = Objects.requireNonNull(effectiveTo, "effectiveTo is required");
+    /**
+     * Pass null to make the salary open-ended.
+     */
+    public void setEffectiveTill(LocalDate effectiveTill) {
+        this.effectiveTill = validateRange(this.effectiveFrom, effectiveTill);
     }
 
     public void setCurrency(String currency) {
@@ -188,5 +217,4 @@ public class Salary {
         this.epf = requireNonNegative(epf, "epf");
         recalculateNet();
     }
-
 }

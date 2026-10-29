@@ -95,7 +95,7 @@ public class Payment {
 
     /**
      * Records a payment for a pay period using the salary's current values.
-     * The salary is read only here. Later changes to it do not affect this record.
+     * The pay period must fall entirely within the salary's effective range.
      */
     public static Payment record(Salary salary, LocalDate periodStart, LocalDate periodEnd, LocalDate paidDate, LocalTime paidTime) {
         Objects.requireNonNull(salary, "salary is required");
@@ -107,8 +107,11 @@ public class Payment {
         if (periodEnd.isBefore(periodStart)) {
             throw new IllegalArgumentException("periodEnd cannot be before periodStart");
         }
-        if (periodStart.isBefore(salary.getEffectiveFrom())) {
-            throw new IllegalArgumentException("Pay period cannot start before the salary's effective date");
+        if (!salary.isEffectiveOn(periodStart)) {
+            throw new IllegalArgumentException("Pay period starts outside the salary's effective range");
+        }
+        if (!salary.isEffectiveOn(periodEnd)) {
+            throw new IllegalArgumentException("Pay period ends outside the salary's effective range");
         }
         return new Payment(salary, periodStart, periodEnd, paidDate, paidTime);
     }

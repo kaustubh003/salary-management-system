@@ -14,8 +14,8 @@ import java.util.List;
 @Entity
 public class Employee {
 
-    @Getter
     @Id
+    @Getter
     @Column(nullable = false, unique = true, length = 5, updatable = false)
     private String employeeCode;
 
@@ -63,7 +63,6 @@ public class Employee {
     @Column(nullable = false)
     private boolean active = true;
 
-    @Getter
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = false)
     @OrderBy("effectiveFrom ASC")
     private List<Salary> salaries = new ArrayList<>();
@@ -102,6 +101,11 @@ public class Employee {
 
     public void activate() {
         this.active = true;
+    }
+
+    /** Returns a read-only snapshot. Use addSalary to change salary history. */
+    public List<Salary> getSalaries() {
+        return List.copyOf(salaries);
     }
 
 }
