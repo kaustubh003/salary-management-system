@@ -63,6 +63,7 @@ public class Employee {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Getter
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = false)
     @OrderBy("effectiveFrom ASC")
     private List<Salary> salaries = new ArrayList<>();

@@ -1,8 +1,6 @@
 package com.acme.salary.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -62,7 +60,7 @@ public class Salary {
 
     public Salary(LocalDate effectiveFrom, LocalDate effectiveTo, String currency, BigDecimal basicSalary, BigDecimal hra, BigDecimal da, BigDecimal tax, BigDecimal epf) {
         this.effectiveFrom = Objects.requireNonNull(effectiveFrom, "effectiveFrom is required");
-        this.effectiveTo = Objects.requireNonNull(effectiveFrom, "effectiveTo is required");
+        this.effectiveTo = Objects.requireNonNull(effectiveTo, "effectiveTo is required");
         this.currency = validateCurrency(currency);
         this.basicSalary = requireNonNegative(basicSalary, "basicSalary");
         this.hra = requireNonNegative(hra, "hra");
