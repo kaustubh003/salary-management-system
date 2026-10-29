@@ -2,6 +2,7 @@ package com.acme.salary.entity;
 
 import com.acme.salary.enums.PaidStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,12 +13,13 @@ import java.util.Objects;
  * Immutable record of a payment. It stores IDs and a snapshot of the salary
  * as it was when the payment was made, and it never reads the Salary table.
  */
+@Getter
 @Entity
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long paymentID;
 
     @Column(nullable = false, updatable = false)
     private String employeeCode;
@@ -58,8 +60,8 @@ public class Payment {
 
     // Payment details
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10, updatable = false)
-    private PaidStatus paidStatus;
+    @Column(nullable = false, length = 10)
+    private PaidStatus paidStatus = PaidStatus.UNPAID;
 
     @Column(nullable = false, updatable = false)
     private LocalDate paidDate;
@@ -111,67 +113,4 @@ public class Payment {
         return new Payment(salary, periodStart, periodEnd, paidDate, paidTime);
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmployeeCode() {
-        return employeeCode;
-    }
-
-    public Long getSalaryId() {
-        return salaryId;
-    }
-
-    public LocalDate getPeriodStart() {
-        return periodStart;
-    }
-
-    public LocalDate getPeriodEnd() {
-        return periodEnd;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public BigDecimal getBasicSalary() {
-        return basicSalary;
-    }
-
-    public BigDecimal getHra() {
-        return hra;
-    }
-
-    public BigDecimal getDa() {
-        return da;
-    }
-
-    public BigDecimal getGrossSalary() {
-        return grossSalary;
-    }
-
-    public BigDecimal getTax() {
-        return tax;
-    }
-
-    public BigDecimal getEpf() {
-        return epf;
-    }
-
-    public BigDecimal getNetSalary() {
-        return netSalary;
-    }
-
-    public PaidStatus getPaidStatus() {
-        return paidStatus;
-    }
-
-    public LocalDate getPaidDate() {
-        return paidDate;
-    }
-
-    public LocalTime getPaidTime() {
-        return paidTime;
-    }
 }
