@@ -1,6 +1,8 @@
 package com.acme.salary.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +18,8 @@ public class Employee {
 
     @Id
     @Getter
-    @Column(nullable = false, unique = true, length = 5, updatable = false)
+    @Setter
+    @Column(nullable = false, unique = true, length = 6, updatable = false)
     private String employeeCode;
 
     @Getter
@@ -47,11 +50,13 @@ public class Employee {
     @Getter
     @Setter
     @Column(nullable = false, unique = true, length = 10)
+    @Size(min = 10, max = 10)
     private String phone;
 
     @Getter
     @Setter
     @Column(nullable = false, unique = true, length = 100)
+    @Email
     private String email;
 
     @Getter
@@ -60,6 +65,7 @@ public class Employee {
     private String country;
 
     @Getter
+    @Setter
     @Column(nullable = false)
     private boolean active = true;
 
@@ -67,9 +73,8 @@ public class Employee {
     @OrderBy("effectiveFrom ASC")
     private List<Salary> salaries = new ArrayList<>();
 
+    public Employee() {
 
-    protected Employee() {
-        // required by JPA
     }
 
     public Employee(String employeeCode, String firstName, String lastName, String department, String jobTitle, String address, String phone, String email, String country) {
@@ -103,7 +108,9 @@ public class Employee {
         this.active = true;
     }
 
-    /** Returns a read-only snapshot. Use addSalary to change salary history. */
+    /**
+     * Returns a read-only snapshot. Use addSalary to change salary history.
+     */
     public List<Salary> getSalaries() {
         return List.copyOf(salaries);
     }
