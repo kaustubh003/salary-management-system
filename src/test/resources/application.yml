@@ -7,3 +7,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+app:
+  auth:
+    username: ${HR_USERNAME:hr.manager}
+    password: ${HR_PASSWORD:change-me}

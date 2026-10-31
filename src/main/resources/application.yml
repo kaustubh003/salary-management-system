@@ -13,3 +13,8 @@ spring:
   h2:
     console:
       enabled: true
+
+app:
+  auth:
+    username: ${HR_USERNAME:hr.manager}
+    password: ${HR_PASSWORD:change-me}

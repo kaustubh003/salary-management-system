@@ -1,7 +1,6 @@
 package com.acme.salary.service;
 
 import com.acme.salary.dto.EmployeeDto;
-import com.acme.salary.entity.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,12 +15,13 @@ public interface IEmployeeService {
     /**
      * @return Page of list of Employees using pagination and sorting.
      */
-    Page<Employee> getEmployees(Pageable pageable);
+    Page<EmployeeDto> getEmployees(Pageable pageable);
 
     /**
-     * @param employeeDto the Employee DTO
+     * @param employeeDto Employee DTO
+     * @return Employee DTO
      */
-    void addEmployee(EmployeeDto employeeDto);
+    EmployeeDto addEmployee(EmployeeDto employeeDto);
 
     /**
      * @param employeeDto the Employee DTO
@@ -31,7 +31,7 @@ public interface IEmployeeService {
 
     /**
      * @param employeeCode the Employee code
-     * @return  true if deleted succcessfully, false if delete failed.
+     * @return true if deleted succcessfully, false if delete failed.
      */
     boolean deactivateEmployee(String employeeCode);
 

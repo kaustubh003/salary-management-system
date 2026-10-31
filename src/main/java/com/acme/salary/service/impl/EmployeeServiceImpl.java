@@ -2,6 +2,7 @@ package com.acme.salary.service.impl;
 
 import com.acme.salary.dto.EmployeeDto;
 import com.acme.salary.entity.Employee;
+import com.acme.salary.exception.ResourceAlreadyExistsException;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.mapper.EmployeeMapper;
 import com.acme.salary.repository.EmployeeRepository;
@@ -26,14 +27,16 @@ public class EmployeeServiceImpl implements IEmployeeService {
         return EmployeeMapper.toDto(employee);
     }
 
-    public Page<Employee> getEmployees(Pageable pageable) {
-        return employeeRepository.findAll(pageable);
+    public Page<EmployeeDto> getEmployees(Pageable pageable) {
+        return employeeRepository.findAll(pageable).map(EmployeeMapper::toDto);
     }
 
-    public void addEmployee(EmployeeDto employeeDto) {
-        Employee newEmployee = new Employee();
-        EmployeeMapper.toEntity(employeeDto);
-        employeeRepository.save(newEmployee);
+    @Transactional
+    public EmployeeDto addEmployee(EmployeeDto employeeDto) {
+        if (employeeRepository.existsById(employeeDto.getEmployeeCode())) {
+            throw new ResourceAlreadyExistsException("Employee", "employeeCode", employeeDto.getEmployeeCode());
+        }
+        return EmployeeMapper.toDto(employeeRepository.save(EmployeeMapper.toEntity(employeeDto)));
     }
 
     @Transactional
