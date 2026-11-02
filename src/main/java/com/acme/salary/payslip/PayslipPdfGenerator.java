@@ -18,11 +18,11 @@ import java.math.RoundingMode;
 
 /**
  * Builds the payslip PDF for a payment.
- *
+ * <p>
  * What the payslip prints is decided in buildPayslip(). Change the lines there freely:
  * heading, subheading, line, row (label on the left, value on the right), gap and rule
  * are the building blocks.
- *
+ * <p>
  * The built-in PDF fonts only cover basic Latin characters. Anything else, such as the
  * rupee sign or non-Latin names, is printed as '?'. That is why amounts show the currency
  * code (INR) and not a symbol. To print other scripts, load a TrueType font with

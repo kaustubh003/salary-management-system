@@ -27,6 +27,7 @@ public class EmployeeServiceImpl implements IEmployeeService {
         return EmployeeMapper.toDto(employee);
     }
 
+    @Transactional
     public Page<EmployeeDto> getEmployees(Pageable pageable) {
         return employeeRepository.findAll(pageable).map(EmployeeMapper::toDto);
     }

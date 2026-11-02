@@ -48,14 +48,6 @@ public class LeaveServiceImpl implements ILeaveService {
         return LeaveMapper.toDto(leaveRepository.save(leave));
     }
 
-    @Override
-    @Transactional
-    public boolean deleteLeave(Long leaveId) {
-        Leave leave = findLeave(leaveId);
-        leaveRepository.delete(leave);
-        return true;
-    }
-
     private Leave findLeave(Long leaveId) {
         return leaveRepository.findById(leaveId)
                 .orElseThrow(() -> new ResourceNotFoundException("Leave", "leaveId", String.valueOf(leaveId)));

@@ -28,10 +28,4 @@ public interface ILeaveService {
      */
     LeaveDto addLeave(String employeeCode, LeaveDto leaveDto);
 
-    /**
-     * @param leaveId the Leave ID
-     * @return true if deleted successfully, false if delete failed.
-     */
-    boolean deleteLeave(Long leaveId);
-
 }
