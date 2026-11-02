@@ -3,9 +3,11 @@ package com.acme.salary.service.impl;
 import com.acme.salary.dto.PaymentDto;
 import com.acme.salary.entity.Payment;
 import com.acme.salary.entity.Salary;
+import com.acme.salary.enums.LeaveType;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.mapper.PaymentMapper;
 import com.acme.salary.repository.EmployeeRepository;
+import com.acme.salary.repository.LeaveRepository;
 import com.acme.salary.repository.PaymentRepository;
 import com.acme.salary.repository.SalaryRepository;
 import com.acme.salary.service.IPaymentService;
@@ -25,6 +27,7 @@ public class PaymentServiceImpl implements IPaymentService {
     private final PaymentRepository paymentRepository;
     private final SalaryRepository salaryRepository;
     private final EmployeeRepository employeeRepository;
+    private final LeaveRepository leaveRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -54,8 +57,13 @@ public class PaymentServiceImpl implements IPaymentService {
         // Read the clock once so the date and time can never fall on different sides of midnight
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
 
+        long unpaidLeaveDays = leaveRepository.countByEmployeeCodeAndLeaveTypeAndLeaveDateBetween(
+                salary.getEmployee().getEmployeeCode(), LeaveType.UNPAID,
+                paymentDto.getPeriodStart(), paymentDto.getPeriodEnd());
+
         Payment payment = Payment.record(salary, paymentDto.getPeriodStart(), paymentDto.getPeriodEnd(),
-                now.toLocalDate(), now.toLocalTime());
+                now.toLocalDate(), now.toLocalTime(), Math.toIntExact(unpaidLeaveDays));
+
         return PaymentMapper.toDto(paymentRepository.save(payment));
     }
 }

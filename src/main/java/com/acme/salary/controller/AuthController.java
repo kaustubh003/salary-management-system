@@ -2,6 +2,7 @@ package com.acme.salary.controller;
 
 import com.acme.salary.dto.LoginRequestDto;
 import com.acme.salary.dto.LoginResponseDto;
+import com.acme.salary.security.BearerToken;
 import com.acme.salary.service.IAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,8 +19,6 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class AuthController {
 
-    private static final String BEARER_PREFIX = "Bearer ";
-
     private final IAuthService authService;
 
     @Operation(summary = "Log in with the HR manager's credentials and receive a session token")
@@ -33,14 +32,8 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
-        authService.logout(extractToken(authorization));
+        authService.logout(BearerToken.from(authorization));
         return ResponseEntity.noContent().build();
     }
 
-    private static String extractToken(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
-            return authorizationHeader.substring(BEARER_PREFIX.length()).trim();
-        }
-        return null;
-    }
 }

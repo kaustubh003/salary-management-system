@@ -30,6 +30,8 @@ public final class PaymentMapper {
         dto.setTax(payment.getTax());
         dto.setEpf(payment.getEpf());
         dto.setNetSalary(payment.getNetSalary());
+        dto.setUnpaidLeaveDays(payment.getUnpaidLeaveDays());
+        dto.setLeaveDeduction(payment.getLeaveDeduction());
         return dto;
     }
 }

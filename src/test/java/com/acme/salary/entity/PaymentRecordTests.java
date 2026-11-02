@@ -89,4 +89,59 @@ class PaymentRecordTests {
         Payment payment = pay(salary, LocalDate.of(2030, 1, 1), LocalDate.of(2030, 1, 31));
         assertEquals(PaidStatus.PAID, payment.getPaidStatus());
     }
+
+    private Payment payWithUnpaidLeave(Salary salary, LocalDate start, LocalDate end, int unpaidLeaveDays) {
+        return Payment.record(salary, start, end, end, LocalTime.of(10, 30), unpaidLeaveDays);
+    }
+
+    @Test
+    void noUnpaidLeaveMeansNoDeduction() {
+        Payment payment = pay(attachedSalary(TILL), FROM, FROM.plusDays(30));
+
+        assertEquals(0, payment.getUnpaidLeaveDays());
+        assertEquals(0, BigDecimal.ZERO.compareTo(payment.getLeaveDeduction()));
+        assertEquals(0, new BigDecimal("73800.00").compareTo(payment.getNetSalary()));
+    }
+
+    @Test
+    void unpaidLeaveReducesNetByTheDailyRateOfGross() {
+        // Daily rate is 90000 / 22 weekdays, so 2 days cost 8181.82
+        Payment payment = payWithUnpaidLeave(attachedSalary(TILL), FROM, LocalDate.of(2026, 1, 31), 2);
+
+        assertEquals(2, payment.getUnpaidLeaveDays());
+        assertEquals(0, new BigDecimal("8181.82").compareTo(payment.getLeaveDeduction()));
+        assertEquals(0, new BigDecimal("65618.18").compareTo(payment.getNetSalary()));
+        assertEquals(0, new BigDecimal("90000.00").compareTo(payment.getGrossSalary()));
+    }
+
+    @Test
+    void deductionNeverExceedsTheSalaryNet() {
+        // All 22 weekdays unpaid: the amount paid drops to zero and never below
+        Payment payment = payWithUnpaidLeave(attachedSalary(TILL), FROM, LocalDate.of(2026, 1, 31), 22);
+
+        assertEquals(0, new BigDecimal("73800.00").compareTo(payment.getLeaveDeduction()));
+        assertEquals(0, BigDecimal.ZERO.compareTo(payment.getNetSalary()));
+    }
+
+    @Test
+    void moreUnpaidDaysThanWeekdaysIsRejected() {
+        Salary salary = attachedSalary(TILL);
+        assertThrows(IllegalArgumentException.class,
+                () -> payWithUnpaidLeave(salary, FROM, LocalDate.of(2026, 1, 31), 23));
+    }
+
+    @Test
+    void negativeUnpaidDaysIsRejected() {
+        Salary salary = attachedSalary(TILL);
+        assertThrows(IllegalArgumentException.class,
+                () -> payWithUnpaidLeave(salary, FROM, FROM.plusDays(30), -1));
+    }
+
+    @Test
+    void weekendOnlyPeriodWithNoLeaveHasNoDeduction() {
+        // Saturday 3 January to Sunday 4 January 2026
+        Payment payment = pay(attachedSalary(TILL), LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+
+        assertEquals(0, BigDecimal.ZERO.compareTo(payment.getLeaveDeduction()));
+    }
 }

@@ -4,9 +4,11 @@ import com.acme.salary.dto.PaymentDto;
 import com.acme.salary.entity.Employee;
 import com.acme.salary.entity.Payment;
 import com.acme.salary.entity.Salary;
+import com.acme.salary.enums.LeaveType;
 import com.acme.salary.enums.PaidStatus;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.repository.EmployeeRepository;
+import com.acme.salary.repository.LeaveRepository;
 import com.acme.salary.repository.PaymentRepository;
 import com.acme.salary.repository.SalaryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,11 +43,14 @@ class PaymentServiceImplTests {
     @Mock
     private EmployeeRepository employeeRepository;
 
+    @Mock
+    private LeaveRepository leaveRepository;
+
     private PaymentServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new PaymentServiceImpl(paymentRepository, salaryRepository, employeeRepository);
+        service = new PaymentServiceImpl(paymentRepository, salaryRepository, employeeRepository, leaveRepository);
     }
 
     private Salary salaryOfEmployee() {
@@ -140,5 +145,21 @@ class PaymentServiceImplTests {
         assertThrows(IllegalArgumentException.class,
                 () -> service.addPayment(request(LocalDate.of(2025, 12, 1), LocalDate.of(2025, 12, 31))));
         verify(paymentRepository, never()).save(any(Payment.class));
+    }
+    
+    @Test
+    void addPaymentDeductsUnpaidLeaveInThePeriod() {
+        when(salaryRepository.findById(1L)).thenReturn(Optional.of(salaryOfEmployee()));
+        // The exact arguments matter: a wrong employee, leave type or dates would return 0 and fail the asserts
+        when(leaveRepository.countByEmployeeCodeAndLeaveTypeAndLeaveDateBetween(
+                "P00001", LeaveType.UNPAID, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
+                .thenReturn(2L);
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PaymentDto result = service.addPayment(request(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)));
+
+        assertEquals(2, result.getUnpaidLeaveDays());
+        assertEquals(0, new BigDecimal("8181.82").compareTo(result.getLeaveDeduction()));
+        assertEquals(0, new BigDecimal("65618.18").compareTo(result.getNetSalary()));
     }
 }

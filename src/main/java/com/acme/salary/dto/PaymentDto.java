@@ -69,4 +69,12 @@ public class PaymentDto {
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private BigDecimal netSalary;
 
+    @Schema(description = "Number of UNPAID leave days in the pay period, counted by the system",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    private int unpaidLeaveDays;
+
+    @Schema(description = "Pay deducted for unpaid leave. netSalary is the amount paid after this deduction",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    private BigDecimal leaveDeduction;
+
 }
