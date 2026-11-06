@@ -55,6 +55,10 @@
     {
       "key": "leaveId",
       "value": ""
+    },
+    {
+      "key": "unpaidLeaveId",
+      "value": ""
     }
   ],
   "item": [
@@ -693,7 +697,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });"
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"unpaidLeaveId\", json.leaveId);"
                 ]
               }
             }
@@ -1032,6 +1038,52 @@
                   "pm.test(\"No unpaid leave in February\", function () { pm.expect(json.unpaidLeaveDays).to.eql(0); });",
                   "pm.test(\"No deduction\", function () { pm.expect(Number(json.leaveDeduction)).to.eql(0); });",
                   "pm.test(\"Net equals the salary net\", function () { pm.expect(Number(json.netSalary)).to.eql(83800); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add a leave inside the paid period (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeCode}}/leaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeCode}}",
+                "leaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveDate\": \"2026-01-16\",\n  \"leaveType\": \"UNPAID\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Friday 16 Jan 2026 is a weekday inside the period of the January payment, so the leave is refused."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"Message explains the lock\", function () { pm.expect(pm.response.text()).to.include(\"already covers\"); });"
                 ]
               }
             }

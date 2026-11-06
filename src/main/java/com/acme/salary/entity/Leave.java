@@ -31,14 +31,14 @@ public class Leave {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long leaveId;
 
-    @Column(name = "employee_code", nullable = false, length = 6, updatable = false)
+    @Column(nullable = false, length = 6, updatable = false)
     private String employeeCode;
 
-    @Column(name = "leave_date", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDate leaveDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "leave_type", nullable = false, length = 10, updatable = false)
+    @Column(nullable = false, length = 10, updatable = false)
     private LeaveType leaveType;
 
     protected Leave() {

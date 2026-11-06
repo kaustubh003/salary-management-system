@@ -15,7 +15,7 @@ class PaymentRecordTests {
     private static final LocalDate TILL = LocalDate.of(2026, 6, 30);
 
     private Employee employee() {
-        return new Employee("EMP01", "Asha", "Rao", "Finance", "Analyst",
+        return new Employee("P00001", "Asha", "Rao", "Finance", "Analyst",
                 "Pune", "9876543210", "asha@example.com", "India");
     }
 
@@ -36,7 +36,7 @@ class PaymentRecordTests {
         Salary salary = attachedSalary(TILL);
         Payment payment = pay(salary, FROM, FROM.plusMonths(1).minusDays(1));
 
-        assertEquals("EMP01", payment.getEmployeeCode());
+        assertEquals("P00001", payment.getEmployeeCode());
         assertEquals("INR", payment.getCurrency());
         assertEquals(0, new BigDecimal("73800.00").compareTo(payment.getNetSalary()));
         assertEquals(0, new BigDecimal("90000.00").compareTo(payment.getGrossSalary()));

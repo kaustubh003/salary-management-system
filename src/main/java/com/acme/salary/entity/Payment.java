@@ -147,22 +147,21 @@ public class Payment {
      * Saturdays and Sundays are holidays, so they are not counted. The deduction never exceeds
      * the salary's net, so the amount paid cannot go below zero.
      */
-    private static BigDecimal calculateLeaveDeduction(Salary salary, LocalDate periodStart,
-                                                      LocalDate periodEnd, int unpaidLeaveDays) {
+    private static BigDecimal calculateLeaveDeduction(Salary salary, LocalDate periodStart, LocalDate periodEnd, int unpaidLeaveDays) {
         if (unpaidLeaveDays < 0) {
             throw new IllegalArgumentException("unpaidLeaveDays cannot be negative");
         }
         if (unpaidLeaveDays == 0) {
             return BigDecimal.ZERO.setScale(2);
         }
-        long weekdays = weekdaysBetween(periodStart, periodEnd);
-        if (unpaidLeaveDays > weekdays) {
+        long workingDays = weekdaysBetween(periodStart, periodEnd);
+        if (unpaidLeaveDays > workingDays) {
             throw new IllegalArgumentException("Unpaid leave days (" + unpaidLeaveDays
-                    + ") exceed the weekdays in the pay period (" + weekdays + ")");
+                    + ") exceed the weekdays in the pay period (" + workingDays + ")");
         }
         BigDecimal deduction = salary.getGrossSalary()
-                .multiply(BigDecimal.valueOf(unpaidLeaveDays))
-                .divide(BigDecimal.valueOf(weekdays), 2, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(workingDays), 2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(unpaidLeaveDays));
         return deduction.min(salary.getNetSalary().max(BigDecimal.ZERO));
     }
 

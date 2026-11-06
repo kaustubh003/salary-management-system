@@ -5,7 +5,7 @@ import com.acme.salary.dto.LeaveDto;
 import java.util.List;
 
 /**
- * Leaves are immutable: they can be read, recorded and deleted, but never updated.
+ * Leaves are immutable: they can be read and recorded but never deleted and updated.
  */
 public interface ILeaveService {
 
