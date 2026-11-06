@@ -15,13 +15,13 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public class LeaveRefillScheduler {
+public class LeavesRefillScheduler {
 
     private final LeavesMonthlyRefillRepository leavesMonthlyRefillRepository;
     private final AvailableLeavesRepository availableLeavesRepository;
 
-    public LeaveRefillScheduler(LeavesMonthlyRefillRepository leavesMonthlyRefillRepository,
-                                AvailableLeavesRepository availableLeavesRepository) {
+    public LeavesRefillScheduler(LeavesMonthlyRefillRepository leavesMonthlyRefillRepository,
+                                 AvailableLeavesRepository availableLeavesRepository) {
         this.leavesMonthlyRefillRepository = leavesMonthlyRefillRepository;
         this.availableLeavesRepository = availableLeavesRepository;
     }
