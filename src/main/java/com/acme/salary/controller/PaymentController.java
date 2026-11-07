@@ -33,7 +33,7 @@ public class PaymentController {
     @GetMapping("/employees/{employeeCode}/payments")
     public ResponseEntity<Page<PaymentDto>> getPayments(
             @PathVariable String employeeCode,
-            @PageableDefault(size = 20, sort = "periodStart", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "periodStart", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(paymentService.getPayments(employeeCode, pageable));
     }
 

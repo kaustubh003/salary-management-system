@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "fafff1ed-2c00-45e2-a624-19612c8e7396",
+    "_postman_id": "f0b148fa-b32e-4551-88a9-e76359e53baf",
     "name": "ACME Salary Management API",
-    "description": "Requests and checks for the ACME Salary Management backend.\n\n1. Start the application (default http://localhost:8080).\n2. If you changed the HR manager's credentials, update the username and password collection variables.\n3. Open the Collection Runner and run the folders in order. Each run creates a new employee with a random code, so it can be repeated.\n\nMost requests carry tests. Requests marked 'expect 4xx' check that the API rejects bad input.",
+    "description": "Requests and checks for the ACME Salary Management backend.\n\n1. Start the application (default http://localhost:8080).\n2. If you changed the HR manager's credentials, update the username and password collection variables.\n3. Open the Collection Runner and run the folders in order. Each run creates a new employee with a random code, so it can be repeated.\n\nMost requests carry tests. Requests marked 'expect 4xx' check that the API rejects bad input.\n\nAvailable Leaves, Leaves and Payments work together: recording a leave reduces its balance, and the next payment deducts pay for balances that went negative. The collection does not exercise the UNPAID-leave double-count edge case.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -57,7 +57,7 @@
       "value": ""
     },
     {
-      "key": "unpaidLeaveId",
+      "key": "earnedBalanceId",
       "value": ""
     }
   ],
@@ -610,7 +610,815 @@
       ]
     },
     {
-      "name": "4. Leaves",
+      "name": "4. Available Leaves",
+      "item": [
+        {
+          "name": "Add CASUAL balance (2 days)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/addAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "addAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"CASUAL\",\n  \"availableLeaves\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Balance is returned\", function () { pm.expect(json.employeeCode).to.eql(pm.collectionVariables.get(\"employeeCode\")); pm.expect(json.leaveType).to.eql(\"CASUAL\"); pm.expect(json.availableLeaves).to.eql(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add EARNED balance (5 days)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/addAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "addAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"EARNED\",\n  \"availableLeaves\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "This balance is updated and then deleted further down, so it does not affect the payments."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"earnedBalanceId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add a balance for an unknown employee (expect 404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/addAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "addAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"NOPE00\",\n  \"leaveType\": \"CASUAL\",\n  \"availableLeaves\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add a balance without a leave type (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/addAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "addAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"availableLeaves\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add an UNPAID balance (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/addAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "addAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"UNPAID\",\n  \"availableLeaves\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get the CASUAL balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=CASUAL",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "CASUAL"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"It is the CASUAL balance with 2 days\", function () { pm.expect(json.leaveType).to.eql(\"CASUAL\"); pm.expect(json.availableLeaves).to.eql(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get a balance of a type the employee has none of",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=SICK",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "SICK"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"It is the SICK leave balance with 0 days\", function () { pm.expect(json.leaveType).to.eql(\"SICK\"); pm.expect(json.availableLeaves).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get a balance of an unknown employee (expect 404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/NOPE00/availableLeaves?leaveType=CASUAL",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "NOPE00",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "CASUAL"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get a balance with an invalid leave type (expect 400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=HOLIDAY",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "HOLIDAY"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List the balances of the employee",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Three balances, ordered by leave type\", function () { pm.expect(json.map(b => b.leaveType)).to.eql([\"CASUAL\", \"EARNED\", \"SICK\"]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List the balances of an unknown employee (expect 404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/NOPE00/availableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "NOPE00",
+                "availableLeaves"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update the EARNED balance to 6 days",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/updateAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "updateAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{earnedBalanceId}},\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"EARNED\",\n  \"availableLeaves\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get the EARNED balance after the update",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=EARNED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "EARNED"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"It now has 6 days\", function () { pm.expect(pm.response.json().availableLeaves).to.eql(6); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update EARNED balance without a record ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/updateAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "updateAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"EARNED\",\n  \"availableLeaves\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update an UNPAID balance (expect 400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/updateAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "updateAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"UNPAID\",\n  \"availableLeaves\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete the EARNED balance",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/deleteAvailableLeaves?leaveType=EARNED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "deleteAvailableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "EARNED"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recreate EARNED balance with update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/updateAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "updateAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"EARNED\",\n  \"availableLeaves\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get the EARNED balance after the update",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=EARNED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "EARNED"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"A missing balance is created with the requested amount\", function () { pm.expect(pm.response.json().availableLeaves).to.eql(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete the re-created EARNED balance",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/deleteAvailableLeaves?leaveType=EARNED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "deleteAvailableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "EARNED"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete a balance of an unknown employee (expect 404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/NOPE00/deleteAvailableLeaves?leaveType=CASUAL",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "NOPE00",
+                "deleteAvailableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "CASUAL"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete a balance without a leave type (expect 400)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/deleteAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "deleteAvailableLeaves"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Balance starts at CASUAL 2. Every leave recorded in the next folder takes one day off its type's balance, and a balance can go below zero. Recording a payment turns negative balances into deducted pay days and resets them to 0."
+    },
+    {
+      "name": "5. Leaves",
       "item": [
         {
           "name": "Add leave on a weekday (Wednesday)",
@@ -642,7 +1450,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "CASUAL balance: 2 -> 1."
           },
           "event": [
             {
@@ -659,7 +1468,7 @@
           ]
         },
         {
-          "name": "Add UNPAID leave on Wed 14 Jan 2026",
+          "name": "Add CASUAL leave on Wed 14 Jan 2026",
           "request": {
             "method": "POST",
             "header": [
@@ -682,14 +1491,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"leaveDate\": \"2026-01-14\",\n  \"leaveType\": \"UNPAID\"\n}",
+              "raw": "{\n  \"leaveDate\": \"2026-01-14\",\n  \"leaveType\": \"CASUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "Unpaid leave inside the January pay period. The payment in folder 5 deducts pay for it."
+            "description": "CASUAL balance: 1 -> 0."
           },
           "event": [
             {
@@ -697,16 +1506,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
-                  "const json = pm.response.json();",
-                  "pm.collectionVariables.set(\"unpaidLeaveId\", json.leaveId);"
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Add UNPAID leave on Thu 15 Jan 2026",
+          "name": "Add CASUAL leave on Thu 15 Jan 2026",
           "request": {
             "method": "POST",
             "header": [
@@ -729,13 +1536,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"leaveDate\": \"2026-01-15\",\n  \"leaveType\": \"UNPAID\"\n}",
+              "raw": "{\n  \"leaveDate\": \"2026-01-15\",\n  \"leaveType\": \"CASUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "CASUAL balance: 0 -> -1, so one day will be deducted from the January payment."
           },
           "event": [
             {
@@ -773,7 +1581,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"leaveDate\": \"2026-11-07\",\n  \"leaveType\": \"SICK\"\n}",
+              "raw": "{\n  \"leaveDate\": \"2026-11-07\",\n  \"leaveType\": \"CASUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -818,7 +1626,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"leaveDate\": \"2026-11-08\",\n  \"leaveType\": \"SICK\"\n}",
+              "raw": "{\n  \"leaveDate\": \"2026-11-08\",\n  \"leaveType\": \"CASUAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -942,11 +1750,84 @@
               }
             }
           ]
+        },
+        {
+          "name": "CASUAL balance after the leaves",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=CASUAL",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "CASUAL"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Three casual leaves took the balance from 2 to -1\", function () { pm.expect(pm.response.json().availableLeaves).to.eql(-1); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EARNED balance is still zero",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=EARNED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "EARNED"
+                }
+              ]
+            },
+            "description": "The duplicate-date leave above was an EARNED leave. It was refused, so it must not have created a balance."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Expected zero EARNED leaves\", function () { pm.expect(pm.response.json().availableLeaves).to.eql(0); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "5. Payments",
+      "name": "6. Payments",
       "item": [
         {
           "name": "Add payment",
@@ -977,7 +1858,7 @@
                 }
               }
             },
-            "description": "After the salary update the gross is 100000 and the salary net is 83800. January 2026 has 22 weekdays, so 2 unpaid days cost 100000 x 2 / 22 = 9090.91, and the amount paid is 74709.09."
+            "description": "CASUAL is at -1, so 1 day is deducted. After the salary update the gross is 100000 and the salary net is 83800. January 2026 has 22 weekdays: 100000 / 22 rounds to 4545.45, so 79254.55 is paid."
           },
           "event": [
             {
@@ -988,10 +1869,46 @@
                   "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
                   "const json = pm.response.json();",
                   "pm.test(\"Payment is marked PAID\", function () { pm.expect(json.paidStatus).to.eql(\"PAID\"); });",
-                  "pm.test(\"Two unpaid leave days were counted\", function () { pm.expect(json.unpaidLeaveDays).to.eql(2); });",
-                  "pm.test(\"Leave deduction is 2 days of gross over 22 weekdays\", function () { pm.expect(Number(json.leaveDeduction)).to.eql(9090.91); });",
-                  "pm.test(\"Net is the salary net minus the deduction\", function () { pm.expect(Number(json.netSalary)).to.eql(74709.09); });",
+                  "pm.test(\"One day is deducted for one negative balance\", function () { pm.expect(json.unpaidLeaveDays).to.eql(1); });",
+                  "pm.test(\"Leave deduction is 1 day of gross over 22 weekdays\", function () { pm.expect(Number(json.leaveDeduction)).to.eql(4545.45); });",
+                  "pm.test(\"Net is the salary net minus the deduction\", function () { pm.expect(Number(json.netSalary)).to.eql(79254.55); });",
                   "pm.collectionVariables.set(\"paymentId\", json.paymentID);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CASUAL balance after the payment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=CASUAL",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "CASUAL"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"The negative balance was reset to 0\", function () { pm.expect(pm.response.json().availableLeaves).to.eql(0); });"
                 ]
               }
             }
@@ -1025,7 +1942,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "The balances were reset by the January payment, so nothing is left over to deduct."
           },
           "event": [
             {
@@ -1035,7 +1953,7 @@
                 "exec": [
                   "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
                   "const json = pm.response.json();",
-                  "pm.test(\"No unpaid leave in February\", function () { pm.expect(json.unpaidLeaveDays).to.eql(0); });",
+                  "pm.test(\"No days deducted in February\", function () { pm.expect(json.unpaidLeaveDays).to.eql(0); });",
                   "pm.test(\"No deduction\", function () { pm.expect(Number(json.leaveDeduction)).to.eql(0); });",
                   "pm.test(\"Net equals the salary net\", function () { pm.expect(Number(json.netSalary)).to.eql(83800); });"
                 ]
@@ -1203,7 +2121,7 @@
       ]
     },
     {
-      "name": "6. Payslips",
+      "name": "7. Payslips",
       "item": [
         {
           "name": "Download a payslip before it is generated (expect 404)",
@@ -1365,8 +2283,43 @@
       ]
     },
     {
-      "name": "7. Cleanup",
+      "name": "8. Cleanup",
       "item": [
+        {
+          "name": "Delete the CASUAL balance",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/deleteAvailableLeaves?leaveType=CASUAL",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "deleteAvailableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "CASUAL"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
         {
           "name": "Delete salary",
           "request": {
@@ -1427,10 +2380,10 @@
           ]
         }
       ],
-      "description": "Payments are immutable, so there is nothing to clean up for them. Deleting the salary leaves the payment and its payslip untouched."
+      "description": "Leaves and payments cannot be deleted, so only the balances and the salary are removed and the employee deactivated. Deleting the salary leaves the payments and payslips untouched."
     },
     {
-      "name": "8. Security",
+      "name": "9. Security",
       "item": [
         {
           "name": "List employees without a token (expect 401)",

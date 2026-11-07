@@ -41,7 +41,7 @@ public class AvailableLeavesController {
         return ResponseEntity.status(HttpStatus.CREATED).body(availableLeavesService.addAvailableLeaves(availableLeavesDto));
     }
 
-    @Operation(summary = "Update the employee's available leaves of a leave type (if the record exists)")
+    @Operation(summary = "Create or update the employee's available leaves of a leave type")
     @PutMapping(path = "/availableLeaves/updateAvailableLeaves", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateAvailableLeaves(@Valid @RequestBody AvailableLeavesDto availableLeavesDto) {
         boolean updated = availableLeavesService.updateAvailableLeaves(availableLeavesDto);
@@ -52,7 +52,7 @@ public class AvailableLeavesController {
     }
 
     @Operation(summary = "Delete available leaves of a leave type for an employee")
-    @PatchMapping("/{employeeCode}/deleteAvailableLeaves")
+    @DeleteMapping("/{employeeCode}/deleteAvailableLeaves")
     public ResponseEntity<Void> deleteAvailableLeaves(@PathVariable String employeeCode,
                                                       @RequestParam LeaveType leaveType) {
         boolean deleted = availableLeavesService.deleteAvailableLeaves(employeeCode, leaveType);
