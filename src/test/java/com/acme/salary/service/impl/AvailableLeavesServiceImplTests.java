@@ -3,6 +3,7 @@ package com.acme.salary.service.impl;
 import com.acme.salary.dto.AvailableLeavesDto;
 import com.acme.salary.entity.AvailableLeaves;
 import com.acme.salary.enums.LeaveType;
+import com.acme.salary.exception.ResourceAlreadyExistsException;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.repository.AvailableLeavesRepository;
 import com.acme.salary.repository.EmployeeRepository;
@@ -177,6 +178,16 @@ class AvailableLeavesServiceImplTests {
     @Test
     void addAvailableLeavesRejectsUnpaidBalance() {
         assertThrows(IllegalArgumentException.class, () -> service.addAvailableLeaves(dto(LeaveType.UNPAID, 2)));
+        verify(availableLeavesRepository, never()).save(any(AvailableLeaves.class));
+    }
+
+    @Test
+    void addAvailableLeavesRejectsASecondBalanceForTheSameType() {
+        when(employeeRepository.existsById("P00001")).thenReturn(true);
+        when(availableLeavesRepository.findByEmployeeCodeAndLeaveType("P00001", LeaveType.CASUAL))
+                .thenReturn(Optional.of(balance(LeaveType.CASUAL, 0)));
+
+        assertThrows(ResourceAlreadyExistsException.class, () -> service.addAvailableLeaves(dto(LeaveType.CASUAL, 5)));
         verify(availableLeavesRepository, never()).save(any(AvailableLeaves.class));
     }
 

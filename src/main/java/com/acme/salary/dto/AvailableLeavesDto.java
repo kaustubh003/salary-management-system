@@ -14,7 +14,7 @@ public class AvailableLeavesDto {
     @Schema(description = "Unique identifier for the available leaves record", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
-    @Schema(description = "Code of the employee", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Code of the employee. Required when adding or updating a balance")
     private String employeeCode;
 
     @NotNull(message = "Leave type is required")

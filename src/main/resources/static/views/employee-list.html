@@ -1,0 +1,91 @@
+<section class="employee-page">
+  <div class="employee-page-heading">
+    <div>
+      <p class="eyebrow">PEOPLE DIRECTORY</p>
+      <h1>Employee Master</h1>
+      <p class="employee-page-subtitle">View and manage your employee records.</p>
+    </div>
+    <div class="employee-actions">
+      <button class="button button-danger-outline" type="button" ng-if="selectedCount > 0" ng-click="deleteSelected()" ng-disabled="deleting">
+        {{ deleting ? 'Deleting...' : 'Delete Employee(s)' }} <span class="selected-count">{{ selectedCount }}</span>
+      </button>
+      <label class="button button-secondary import-button" ng-class="{ 'button-disabled': importing }">
+        <input type="file" accept=".xlsx,.xls" employee-file on-file="importEmployees(file)" ng-disabled="importing" />
+        {{ importing ? 'Importing...' : 'Import Employees' }}
+      </label>
+      <button class="button button-primary" type="button" ui-sref="dashboard.employeeMaster.add"><span aria-hidden="true">+</span> Add Employee</button>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+  <p class="employee-alert employee-alert-success" role="status" ng-if="notice">{{ notice }}</p>
+  <p class="employee-import-hint">Excel columns, in order: employeeCode, firstName, lastName, department, jobTitle, address, phone, email, country.</p>
+
+  <section class="employee-panel">
+    <div class="employee-toolbar">
+      <label class="employee-search">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" ng-model="filters.employeeCode" ng-model-options="{ debounce: 300 }" ng-change="applyFilters()" placeholder="Search by employee code" aria-label="Search by employee code" />
+      </label>
+      <div class="employee-filters">
+        <label class="filter-select">
+          <span class="sr-only">Filter by department</span>
+          <select ng-model="filters.department" ng-change="applyFilters()">
+            <option value="">All departments</option>
+            <option ng-repeat="department in departments" value="{{ department }}">{{ department }}</option>
+          </select>
+        </label>
+        <label class="filter-select">
+          <span class="sr-only">Filter by job title</span>
+          <select ng-model="filters.jobTitle" ng-change="applyFilters()">
+            <option value="">All job titles</option>
+            <option ng-repeat="jobTitle in jobTitles" value="{{ jobTitle }}">{{ jobTitle }}</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="employee-table-wrap">
+      <table class="employee-table">
+        <thead>
+          <tr>
+            <th class="selection-column">
+              <input type="checkbox" aria-label="Select all employees" ng-checked="isAllSelected()" ng-click="toggleAll()" />
+            </th>
+            <th><button class="sort-button" type="button" ng-click="sortBy('employeeCode')">Employee Code <span>{{ sortField === 'employeeCode' ? (sortDescending ? '↓' : '↑') : '↕' }}</span></button></th>
+            <th><button class="sort-button" type="button" ng-click="sortBy('firstName')">First Name <span>{{ sortField === 'firstName' ? (sortDescending ? '↓' : '↑') : '↕' }}</span></button></th>
+            <th><button class="sort-button" type="button" ng-click="sortBy('lastName')">Last Name <span>{{ sortField === 'lastName' ? (sortDescending ? '↓' : '↑') : '↕' }}</span></button></th>
+            <th>Department</th>
+            <th>Job Title</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-if="loading"><td class="table-message" colspan="6">Loading employees...</td></tr>
+          <tr ng-if="!loading && employees.length === 0">
+            <td class="table-message" colspan="6">{{ totalElements ? 'No employees match your filters.' : 'No employees found.' }}</td>
+          </tr>
+          <tr class="employee-row" role="link" ng-repeat="employee in employees track by employee.employeeCode"
+              ng-click="openEmployee(employee)" ng-keydown="$event.keyCode === 13 && openEmployee(employee)" tabindex="0"
+              aria-label="View details for {{ employee.firstName }} {{ employee.lastName }}">
+            <td class="selection-column" ng-click="$event.stopPropagation()">
+              <input type="checkbox" aria-label="Select employee {{ employee.employeeCode }}" ng-model="selected[employee.employeeCode]" ng-change="updateSelectionCount()" />
+            </td>
+            <td><span class="employee-code">{{ employee.employeeCode }}</span></td>
+            <td>{{ employee.firstName }}</td>
+            <td>{{ employee.lastName }}</td>
+            <td><span class="department-label">{{ employee.department }}</span></td>
+            <td>{{ employee.jobTitle }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="employee-table-footer" ng-if="!loading">
+      <span>{{ totalElements }} employee(s) · {{ selectedCount }} selected</span>
+      <div class="employee-pagination" ng-if="totalPages > 1" aria-label="Employee table pages">
+        <button type="button" ng-click="changePage(pageNumber - 1)" ng-disabled="pageNumber === 0" aria-label="Previous page">‹</button>
+        <button type="button" ng-repeat="page in pageNumbers" ng-click="changePage(page)" ng-class="{ 'current-page': page === pageNumber }" aria-label="Page {{ page + 1 }}">{{ page + 1 }}</button>
+        <button type="button" ng-click="changePage(pageNumber + 1)" ng-disabled="pageNumber + 1 >= totalPages" aria-label="Next page">›</button>
+      </div>
+    </div>
+  </section>
+</section>

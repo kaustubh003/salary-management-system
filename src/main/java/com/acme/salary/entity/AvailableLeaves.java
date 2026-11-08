@@ -8,6 +8,8 @@ import lombok.Setter;
 import java.util.Objects;
 
 @Entity
+@Table(name = "available_leaves",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"employee_code", "leave_type"}))
 @Getter
 public class AvailableLeaves {
 
@@ -16,12 +18,12 @@ public class AvailableLeaves {
     private Long id;
 
     @Setter
-    @Column(nullable = false, updatable = false)
+    @Column(name = "employee_code", nullable = false, updatable = false)
     private String employeeCode;
 
     @Setter
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, updatable = false)
+    @Column(name = "leave_type", nullable = false, updatable = false)
     private LeaveType leaveType;
 
     @Setter

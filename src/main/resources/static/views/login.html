@@ -1,0 +1,46 @@
+<main class="login-page">
+  <section class="login-card" aria-label="Employee portal sign in">
+    <div class="login-brand-panel">
+      <a class="brand brand-light" ui-sref="login" aria-label="ACME Payroll home">
+        <span class="brand-mark">A</span>
+        <span class="brand-name">ACME <strong>PAYROLL</strong></span>
+      </a>
+
+      <div class="brand-message">
+        <p class="eyebrow">EMPLOYEE PORTAL</p>
+        <h1>People first.<br />Paydays, simplified.</h1>
+        <p>Everything you need to stay on top of your pay, all in one place.</p>
+      </div>
+      <span class="brand-orbit brand-orbit-one" aria-hidden="true"></span>
+      <span class="brand-orbit brand-orbit-two" aria-hidden="true"></span>
+      <p class="brand-footnote">A better way to manage your work life.</p>
+    </div>
+
+    <div class="login-form-panel">
+      <div class="mobile-brand brand">
+        <span class="brand-mark">A</span>
+        <span class="brand-name">ACME <strong>PAYROLL</strong></span>
+      </div>
+      <div class="login-heading">
+        <p class="eyebrow">WELCOME BACK</p>
+        <h2>Sign in to your account</h2>
+        <p>Enter your details to access your employee portal.</p>
+      </div>
+
+      <form class="login-form" ng-submit="formSubmit()">
+        <label for="username">Username</label>
+        <input id="username" type="text" ng-model="username" placeholder="Enter your username" autocomplete="username" required />
+        <label for="password">Password</label>
+        <input id="password" type="password" ng-model="password" placeholder="Enter your password" autocomplete="current-password" required />
+
+        <button type="submit" ng-disabled="isSubmitting">
+          <span>{{ isSubmitting ? 'Signing in...' : 'Sign in' }}</span>
+          <span aria-hidden="true">→</span>
+        </button>
+        <p class="login-error" role="alert" ng-show="error">{{ error }}</p>
+      </form>
+
+      <p class="login-security"><span aria-hidden="true">●</span> Secure access to your employee account</p>
+    </div>
+  </section>
+</main>

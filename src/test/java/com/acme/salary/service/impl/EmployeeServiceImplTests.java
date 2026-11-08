@@ -7,6 +7,7 @@ import com.acme.salary.entity.Salary;
 import com.acme.salary.exception.ResourceAlreadyExistsException;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.repository.EmployeeRepository;
+import jakarta.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +38,7 @@ class EmployeeServiceImplTests {
 
     @BeforeEach
     void setUp() {
-        service = new EmployeeServiceImpl(employeeRepository);
+        service = new EmployeeServiceImpl(employeeRepository, Validation.buildDefaultValidatorFactory().getValidator());
     }
 
     private Employee employee() {
@@ -86,13 +87,25 @@ class EmployeeServiceImplTests {
     @Test
     void getEmployeesReturnsTheRepositoryPage() {
         Pageable pageable = PageRequest.of(0, 10);
-        when(employeeRepository.findAll(pageable))
+        when(employeeRepository.findByActiveTrue(pageable))
                 .thenReturn(new PageImpl<>(List.of(employee()), pageable, 1));
 
         Page<EmployeeDto> result = service.getEmployees(pageable);
 
         assertEquals(1, result.getTotalElements());
         assertEquals("P00001", result.getContent().get(0).getEmployeeCode());
+        verify(employeeRepository).findByActiveTrue(pageable);
+        verify(employeeRepository, never()).findAll(pageable);
+    }
+
+    @Test
+    void getEmployeesCapsPageSizeAtOneHundred() {
+        when(employeeRepository.findByActiveTrue(any(Pageable.class)))
+                .thenAnswer(invocation -> Page.empty(invocation.getArgument(0)));
+
+        service.getEmployees(PageRequest.of(0, 250));
+
+        verify(employeeRepository).findByActiveTrue(argThat(pageable -> pageable.getPageSize() == 100));
     }
 
     @Test

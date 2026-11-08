@@ -112,11 +112,11 @@ class LeaveServiceImplTests {
     @Test
     void addLeaveSavesTheLeaveAndDeductsFromAvailableLeaves() {
         when(employeeRepository.existsById("P00001")).thenReturn(true);
-        when(availableLeavesRepository.findByEmployeeCodeAndLeaveType("P00001", LeaveType.UNPAID)).thenReturn(Optional.of(new AvailableLeaves("P00001", LeaveType.UNPAID, 0)));
+        when(availableLeavesRepository.findByEmployeeCodeAndLeaveType("P00001", LeaveType.CASUAL)).thenReturn(Optional.of(new AvailableLeaves("P00001", LeaveType.CASUAL, 0)));
         when(availableLeavesRepository.save(any(AvailableLeaves.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(leaveRepository.save(any(Leave.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.addLeave("P00001", leaveDto(WEDNESDAY, LeaveType.UNPAID));
+        service.addLeave("P00001", leaveDto(WEDNESDAY, LeaveType.CASUAL));
 
         ArgumentCaptor<AvailableLeaves> savedAvailableLeave = ArgumentCaptor.forClass(AvailableLeaves.class);
         ArgumentCaptor<Leave> saved = ArgumentCaptor.forClass(Leave.class);
@@ -125,8 +125,34 @@ class LeaveServiceImplTests {
         assertEquals(-1, savedAvailableLeave.getValue().getAvailableLeaves());
         assertEquals("P00001", saved.getValue().getEmployeeCode());
         assertEquals(WEDNESDAY, saved.getValue().getLeaveDate());
-        assertEquals(LeaveType.UNPAID, saved.getValue().getLeaveType());
+        assertEquals(LeaveType.CASUAL, saved.getValue().getLeaveType());
 
+    }
+
+    @Test
+    void addLeaveStartsANegativeBalanceWhenTheTypeHasNone() {
+        when(employeeRepository.existsById("P00001")).thenReturn(true);
+        when(availableLeavesRepository.save(any(AvailableLeaves.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(leaveRepository.save(any(Leave.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.addLeave("P00001", leaveDto(WEDNESDAY, LeaveType.SICK));
+
+        ArgumentCaptor<AvailableLeaves> created = ArgumentCaptor.forClass(AvailableLeaves.class);
+        verify(availableLeavesRepository).save(created.capture());
+        assertEquals(LeaveType.SICK, created.getValue().getLeaveType());
+        assertEquals(-1, created.getValue().getAvailableLeaves());
+    }
+
+    @Test
+    void addLeaveForUnpaidLeaveLeavesTheBalancesAlone() {
+        when(employeeRepository.existsById("P00001")).thenReturn(true);
+        when(leaveRepository.save(any(Leave.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LeaveDto result = service.addLeave("P00001", leaveDto(WEDNESDAY, LeaveType.UNPAID));
+
+        assertEquals(LeaveType.UNPAID, result.getLeaveType());
+        verify(availableLeavesRepository, never()).findByEmployeeCodeAndLeaveType(any(String.class), any(LeaveType.class));
+        verify(availableLeavesRepository, never()).save(any(AvailableLeaves.class));
     }
 
     @Test
@@ -145,6 +171,7 @@ class LeaveServiceImplTests {
         assertThrows(IllegalArgumentException.class,
                 () -> service.addLeave("P00001", leaveDto(SATURDAY, LeaveType.CASUAL)));
         verify(leaveRepository, never()).save(any(Leave.class));
+        verify(availableLeavesRepository, never()).save(any(AvailableLeaves.class));
     }
 
     @Test
@@ -155,6 +182,7 @@ class LeaveServiceImplTests {
         assertThrows(ResourceAlreadyExistsException.class,
                 () -> service.addLeave("P00001", leaveDto(WEDNESDAY, LeaveType.CASUAL)));
         verify(leaveRepository, never()).save(any(Leave.class));
+        verify(availableLeavesRepository, never()).save(any(AvailableLeaves.class));
     }
 
     @Test
@@ -163,7 +191,8 @@ class LeaveServiceImplTests {
         paymentCovers();
 
         assertThrows(LeaveLockedException.class,
-                () -> service.addLeave("P00001", leaveDto(WEDNESDAY, LeaveType.UNPAID)));
+                () -> service.addLeave("P00001", leaveDto(WEDNESDAY, LeaveType.CASUAL)));
         verify(leaveRepository, never()).save(any(Leave.class));
+        verify(availableLeavesRepository, never()).save(any(AvailableLeaves.class));
     }
 }

@@ -1,0 +1,98 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand brand-light sidebar-brand" ui-sref="dashboard" aria-label="ACME Payroll dashboard">
+      <span class="brand-mark">A</span>
+      <span class="brand-name">ACME <strong>PAYROLL</strong></span>
+    </a>
+
+    <div class="sidebar-label">WORKSPACE</div>
+    <nav class="side-nav" aria-label="Dashboard navigation">
+      <a class="nav-link" ui-sref="dashboard" ng-class="{ 'active': $state.current.name === 'dashboard' }">
+        <span class="nav-icon" aria-hidden="true">⌂</span><span>Overview</span>
+      </a>
+      <a class="nav-link" ui-sref="dashboard.employeeMaster.list" ng-class="{ 'active': $state.includes('dashboard.employeeMaster') }">
+        <span class="nav-icon" aria-hidden="true">♙</span><span>Employee Master</span>
+      </a>
+      <a class="nav-link" ui-sref="dashboard.salaryManagement" ui-sref-active="active">
+        <span class="nav-icon" aria-hidden="true">▤</span><span>Salary Management</span>
+      </a>
+      <a class="nav-link" ui-sref="dashboard.leaveManagement" ui-sref-active="active">
+        <span class="nav-icon" aria-hidden="true">▣</span><span>Leave Management</span>
+      </a>
+      <a class="nav-link" ui-sref="dashboard.payments" ui-sref-active="active">
+        <span class="nav-icon" aria-hidden="true">↗</span><span>Payments</span>
+      </a>
+      <a class="nav-link" ui-sref="dashboard.paymentSlips" ui-sref-active="active">
+        <span class="nav-icon" aria-hidden="true">▧</span><span>Payment Slips</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="support-mark" aria-hidden="true">?</div>
+      <div><strong>Need a hand?</strong><span>Contact your HR team</span></div>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>{{ $state.current.data.pageTitle || 'Dashboard' }}</strong></div>
+      <div class="account">
+        <div class="account-avatar" aria-hidden="true">{{ (user || 'U').charAt(0).toUpperCase() }}</div>
+        <span class="account-name">{{ user || 'Employee' }}</span>
+        <button class="sign-out" type="button" ng-click="logout()" ng-disabled="loggingOut" aria-label="Sign out">
+          {{ loggingOut ? 'Signing out...' : 'Sign out' }}
+        </button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <p class="employee-alert employee-alert-error" role="alert" ng-if="logoutError">{{ logoutError }}</p>
+      <section class="dashboard-content" ng-if="$state.current.name === 'dashboard'">
+        <div class="welcome-row">
+          <div>
+            <p class="eyebrow">YOUR WORKSPACE</p>
+            <h1>Welcome back, {{ user || 'there' }}<span class="welcome-period">.</span></h1>
+            <p class="page-subtitle">A clear view of your employee portal, all in one place.</p>
+          </div>
+          <div class="today-chip"><span class="today-dot"></span> Your account is up to date</div>
+        </div>
+
+        <section class="dashboard-banner">
+          <div>
+            <p class="eyebrow">ACME EMPLOYEE PORTAL</p>
+            <h2>Everything in its right place.</h2>
+            <p>Use your workspace to manage the essentials of your employment.</p>
+          </div>
+          <div class="banner-art" aria-hidden="true"><span></span><span></span><span></span></div>
+        </section>
+
+        <div class="section-heading">
+          <div><h2>Your workspace</h2><p>Choose an area to get started.</p></div>
+        </div>
+        <div class="workspace-grid">
+          <a class="workspace-card" ui-sref="dashboard.employeeMaster.list">
+            <span class="card-icon card-icon-red" aria-hidden="true">♙</span>
+            <span class="card-title">Employee Master</span><span class="card-description">Your employee information</span><span class="card-arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="workspace-card" ui-sref="dashboard.salaryManagement">
+            <span class="card-icon card-icon-peach" aria-hidden="true">▤</span>
+            <span class="card-title">Salary Management</span><span class="card-description">Salary details and records</span><span class="card-arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="workspace-card" ui-sref="dashboard.leaveManagement">
+            <span class="card-icon card-icon-yellow" aria-hidden="true">▣</span>
+            <span class="card-title">Leave Management</span><span class="card-description">Time away and leave details</span><span class="card-arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="workspace-card" ui-sref="dashboard.payments">
+            <span class="card-icon card-icon-green" aria-hidden="true">↗</span>
+            <span class="card-title">Payments</span><span class="card-description">Your payment information</span><span class="card-arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="workspace-card" ui-sref="dashboard.paymentSlips">
+            <span class="card-icon card-icon-blue" aria-hidden="true">▧</span>
+            <span class="card-title">Payment Slips</span><span class="card-description">View your payment slips</span><span class="card-arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </section>
+      <ui-view></ui-view>
+    </main>
+  </div>
+</div>

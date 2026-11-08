@@ -1,0 +1,63 @@
+<section class="employee-page">
+  <div class="employee-page-heading">
+    <div>
+      <a class="back-link" ui-sref="dashboard.employeeMaster.list"><span aria-hidden="true">←</span> Back to Employee Master</a>
+      <p class="eyebrow employee-details-eyebrow">PEOPLE DIRECTORY</p>
+      <h1>Add Employee</h1>
+      <p class="employee-page-subtitle">Create a new employee record.</p>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+
+  <form name="employeeForm" class="employee-panel employee-form-panel" ng-submit="save()" novalidate>
+    <div class="panel-heading">
+      <div><h2>Personal information</h2><p>Fields marked with * are required.</p></div>
+    </div>
+    <div class="employee-form-grid">
+      <label class="form-field">
+        <span>Employee Code *</span>
+        <input type="text" name="employeeCode" ng-model="employee.employeeCode" required minlength="6" maxlength="6" />
+        <small class="field-error" ng-if="employeeForm.employeeCode.$touched && employeeForm.employeeCode.$error.minlength">Employee code must be 6 characters.</small>
+      </label>
+      <label class="form-field">
+        <span>First Name *</span>
+        <input type="text" name="firstName" ng-model="employee.firstName" required maxlength="50" />
+      </label>
+      <label class="form-field">
+        <span>Last Name *</span>
+        <input type="text" name="lastName" ng-model="employee.lastName" required maxlength="50" />
+      </label>
+      <label class="form-field">
+        <span>Department *</span>
+        <input type="text" name="department" ng-model="employee.department" required maxlength="20" />
+      </label>
+      <label class="form-field">
+        <span>Job Title *</span>
+        <input type="text" name="jobTitle" ng-model="employee.jobTitle" required maxlength="50" />
+      </label>
+      <label class="form-field">
+        <span>Email *</span>
+        <input type="email" name="email" ng-model="employee.email" required maxlength="100" />
+      </label>
+      <label class="form-field">
+        <span>Phone *</span>
+        <input type="tel" name="phone" ng-model="employee.phone" required ng-pattern="/^[0-9]{10}$/" maxlength="10" />
+        <small class="field-error" ng-if="employeeForm.phone.$touched && employeeForm.phone.$error.pattern">Enter a 10-digit phone number.</small>
+      </label>
+      <label class="form-field">
+        <span>Country *</span>
+        <input type="text" name="country" ng-model="employee.country" required maxlength="100" />
+      </label>
+      <label class="form-field form-field-wide">
+        <span>Address *</span>
+        <textarea name="address" ng-model="employee.address" required maxlength="256" rows="3"></textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <span class="form-action-spacer"></span>
+      <button class="button button-secondary" type="button" ng-click="cancel()" ng-disabled="saving">Cancel</button>
+      <button class="button button-primary" type="submit" ng-disabled="employeeForm.$invalid || saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+    </div>
+  </form>
+</section>

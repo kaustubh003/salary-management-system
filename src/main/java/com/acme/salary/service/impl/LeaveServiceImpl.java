@@ -55,7 +55,9 @@ public class LeaveServiceImpl implements ILeaveService {
             throw new ResourceAlreadyExistsException("Leave", "leaveDate", leave.getLeaveDate().toString());
         }
         requireNotInPaidPeriod(employeeCode, leave.getLeaveDate());
-        deductFromAvailableLeaves(employeeCode, leaveDto.getLeaveType());
+        if (leaveDto.getLeaveType() != LeaveType.UNPAID) {
+            deductFromAvailableLeaves(employeeCode, leaveDto.getLeaveType());
+        }
         return LeaveMapper.toDto(leaveRepository.save(leave));
     }
 
@@ -67,7 +69,7 @@ public class LeaveServiceImpl implements ILeaveService {
         boolean covered = paymentRepository
                 .existsByEmployeeCodeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(employeeCode, date, date);
         if (covered) {
-            throw new LeaveLockedException("A payment for employee " + employeeCode + " already covers " + date + ", so leaves on this date can no longer be added or deleted");
+            throw new LeaveLockedException("A payment for employee " + employeeCode + " already covers " + date + ", so leaves on this date can no longer be added");
         }
     }
 

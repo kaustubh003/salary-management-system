@@ -658,6 +658,50 @@
           ]
         },
         {
+          "name": "Add a second CASUAL balance (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/addAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "addAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"CASUAL\",\n  \"availableLeaves\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "There is one balance per employee and leave type. Use the update request to change it."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Add EARNED balance (5 days)",
           "request": {
             "method": "POST",
@@ -901,6 +945,50 @@
                   "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
                   "const json = pm.response.json();",
                   "pm.test(\"It is the SICK leave balance with 0 days\", function () { pm.expect(json.leaveType).to.eql(\"SICK\"); pm.expect(json.availableLeaves).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add a balance that the lookup above created (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availableLeaves/addAvailableLeaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availableLeaves",
+                "addAvailableLeaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"leaveType\": \"SICK\",\n  \"availableLeaves\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Looking up a missing balance creates it with 0 days, so adding the same type afterwards must be refused instead of creating a duplicate."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () { pm.response.to.have.status(409); });"
                 ]
               }
             }
@@ -2283,7 +2371,140 @@
       ]
     },
     {
-      "name": "8. Cleanup",
+      "name": "8. UNPAID Leave Check",
+      "description": "An UNPAID leave has no balance and costs one day of pay, once.",
+      "item": [
+        {
+          "name": "Add UNPAID leave on Wed 4 Mar 2026",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeCode}}/leaves",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeCode}}",
+                "leaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveDate\": \"2026-03-04\",\n  \"leaveType\": \"UNPAID\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "UNPAID leave created no balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{employeeCode}}/availableLeaves?leaveType=UNPAID",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "{{employeeCode}}",
+                "availableLeaves"
+              ],
+              "query": [
+                {
+                  "key": "leaveType",
+                  "value": "UNPAID"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"The UNPAID balance is 0, not -1\", function () { pm.expect(pm.response.json().availableLeaves).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add payment for March with one UNPAID leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salaryId\": {{salaryId}},\n  \"periodStart\": \"2026-03-01\",\n  \"periodEnd\": \"2026-03-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "March 2026 has 22 weekdays, so 1 day costs 100000 / 22 = 4545.45 and 79254.55 is paid."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"One UNPAID day is deducted once\", function () { pm.expect(json.unpaidLeaveDays).to.eql(1); });",
+                  "pm.test(\"Deduction is 1 day of gross over 22 weekdays\", function () { pm.expect(Number(json.leaveDeduction)).to.eql(4545.45); });",
+                  "pm.test(\"Net is the salary net minus the deduction\", function () { pm.expect(Number(json.netSalary)).to.eql(79254.55); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Cleanup",
       "item": [
         {
           "name": "Delete the CASUAL balance",
@@ -2383,7 +2604,7 @@
       "description": "Leaves and payments cannot be deleted, so only the balances and the salary are removed and the employee deactivated. Deleting the salary leaves the payments and payslips untouched."
     },
     {
-      "name": "9. Security",
+      "name": "10. Security",
       "item": [
         {
           "name": "List employees without a token (expect 401)",

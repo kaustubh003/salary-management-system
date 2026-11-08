@@ -3,6 +3,7 @@ package com.acme.salary.service.impl;
 import com.acme.salary.dto.AvailableLeavesDto;
 import com.acme.salary.entity.AvailableLeaves;
 import com.acme.salary.enums.LeaveType;
+import com.acme.salary.exception.ResourceAlreadyExistsException;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.mapper.AvailableLeavesMapper;
 import com.acme.salary.repository.AvailableLeavesRepository;
@@ -91,6 +92,12 @@ public class AvailableLeavesServiceImpl implements IAvailableLeavesService {
         requireNotUnpaid(availableLeavesDto.getLeaveType());
         if (!employeeRepository.existsById(availableLeavesDto.getEmployeeCode())) {
             throw new ResourceNotFoundException("Employee", "employeeCode", availableLeavesDto.getEmployeeCode());
+        }
+        // A balance may already exist, for example because looking it up created it. Use update to change it
+        if (availableLeavesRepository.findByEmployeeCodeAndLeaveType(
+                availableLeavesDto.getEmployeeCode(), availableLeavesDto.getLeaveType()).isPresent()) {
+            throw new ResourceAlreadyExistsException("AvailableLeaves", "leaveType",
+                    availableLeavesDto.getLeaveType().name());
         }
 
         return AvailableLeavesMapper.toDto(availableLeavesRepository.save(AvailableLeavesMapper.toEntity(availableLeavesDto)));
