@@ -33,4 +33,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, String> {
     @Query("SELECT DISTINCT e.jobTitle FROM Employee e WHERE e.active = true ORDER BY e.jobTitle")
     List<String> findActiveJobTitles();
 
+    @Query("SELECT e.employeeCode FROM Employee e where e.active = true")
+    List<String> getActiveEmployeeCodes();
+
+    @Query("SELECT e.phone FROM Employee e where e.active = true")
+    List<String> getActivePhones();
+
+    @Query("SELECT e.email FROM Employee e where e.active = true")
+    List<String> getActiveEmails();
+
 }

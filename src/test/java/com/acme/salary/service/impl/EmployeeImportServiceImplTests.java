@@ -43,9 +43,11 @@ class EmployeeImportServiceImplTests {
     @Test
     void importsValidEmployeesAndReturnsImportedCount() throws IOException {
         MockMultipartFile file = workbook(HEADERS,
-                List.of("E10001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"),
-                List.of("E10002", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "9876543211", "ravi@example.com", "India"));
-        when(employeeRepository.existsById(anyString())).thenReturn(false);
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"),
+                List.of("P00002", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "9876543211", "ravi@example.com", "India"));
+        when(employeeRepository.getActiveEmployeeCodes()).thenReturn(List.of());
+        when(employeeRepository.getActivePhones()).thenReturn(List.of());
+        when(employeeRepository.getActiveEmails()).thenReturn(List.of());
         List<Employee> saved = new ArrayList<>();
         doAnswer(invocation -> {
             Iterable<?> entities = invocation.getArgument(0);
@@ -62,9 +64,9 @@ class EmployeeImportServiceImplTests {
         assertEquals(2, imported);
         verify(employeeRepository).saveAll(any());
         assertEquals(2, saved.size());
-        assertEquals("E10001", saved.get(0).getEmployeeCode());
+        assertEquals("P00001", saved.get(0).getEmployeeCode());
         assertEquals("Asha", saved.get(0).getFirstName());
-        assertEquals("E10002", saved.get(1).getEmployeeCode());
+        assertEquals("P00002", saved.get(1).getEmployeeCode());
         assertTrue(saved.stream().allMatch(employee -> employee.getSalaries().isEmpty()));
     }
 
@@ -76,7 +78,7 @@ class EmployeeImportServiceImplTests {
 
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> service.importEmployees(workbook(wrongHeaders,
-                        List.of("Asha", "E10001", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"))));
+                        List.of("Asha", "P00001", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"))));
 
         assertTrue(error.getMessage().contains("exact order"));
         verify(employeeRepository, never()).saveAll(any());
@@ -85,8 +87,8 @@ class EmployeeImportServiceImplTests {
     @Test
     void rejectsInvalidRowsWithoutPartiallyImportingValidRows() throws IOException {
         MockMultipartFile file = workbook(HEADERS,
-                List.of("E10001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"),
-                List.of("E10002", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "123", "not-an-email", "India"));
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"),
+                List.of("P00002", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "123", "not-an-email", "India"));
 
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> service.importEmployees(file));
 
@@ -98,8 +100,10 @@ class EmployeeImportServiceImplTests {
     @Test
     void rejectsEmployeeCodeThatAlreadyExists() throws IOException {
         MockMultipartFile file = workbook(HEADERS,
-                List.of("E10001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"));
-        when(employeeRepository.existsById("E10001")).thenReturn(true);
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"));
+        when(employeeRepository.getActiveEmployeeCodes()).thenReturn(List.of("P00001"));
+        when(employeeRepository.getActivePhones()).thenReturn(List.of());
+        when(employeeRepository.getActiveEmails()).thenReturn(List.of());
 
         assertThrows(ResourceAlreadyExistsException.class, () -> service.importEmployees(file));
 
@@ -109,13 +113,71 @@ class EmployeeImportServiceImplTests {
     @Test
     void rejectsDuplicateEmployeeCodesWithinTheWorkbook() throws IOException {
         MockMultipartFile file = workbook(HEADERS,
-                List.of("E10001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"),
-                List.of("E10001", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "9876543211", "ravi@example.com", "India"));
-        when(employeeRepository.existsById("E10001")).thenReturn(false);
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"),
+                List.of("P00001", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "9876543211", "ravi@example.com", "India"));
+        when(employeeRepository.getActiveEmployeeCodes()).thenReturn(List.of());
+        when(employeeRepository.getActivePhones()).thenReturn(List.of());
+        when(employeeRepository.getActiveEmails()).thenReturn(List.of());
 
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> service.importEmployees(file));
 
         assertTrue(error.getMessage().contains("Duplicate employeeCode"));
+        verify(employeeRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void rejectsPhoneThatAlreadyExists() throws IOException {
+        MockMultipartFile file = workbook(HEADERS,
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"));
+        when(employeeRepository.getActiveEmployeeCodes()).thenReturn(List.of());
+        when(employeeRepository.getActivePhones()).thenReturn(List.of("9876543210"));
+        when(employeeRepository.getActiveEmails()).thenReturn(List.of());
+
+        assertThrows(ResourceAlreadyExistsException.class, () -> service.importEmployees(file));
+
+        verify(employeeRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void rejectsDuplicatePhonesWithinTheWorkbook() throws IOException {
+        MockMultipartFile file = workbook(HEADERS,
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"),
+                List.of("P00002", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "9876543210", "ravi@example.com", "India"));
+        when(employeeRepository.getActiveEmployeeCodes()).thenReturn(List.of());
+        when(employeeRepository.getActivePhones()).thenReturn(List.of());
+        when(employeeRepository.getActiveEmails()).thenReturn(List.of());
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> service.importEmployees(file));
+
+        assertTrue(error.getMessage().contains("Duplicate phone number"));
+        verify(employeeRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void rejectsEmailsThatAlreadyExists() throws IOException {
+        MockMultipartFile file = workbook(HEADERS,
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "asha@example.com", "India"));
+        when(employeeRepository.getActiveEmployeeCodes()).thenReturn(List.of());
+        when(employeeRepository.getActivePhones()).thenReturn(List.of());
+        when(employeeRepository.getActiveEmails()).thenReturn(List.of("asha@example.com"));
+
+        assertThrows(ResourceAlreadyExistsException.class, () -> service.importEmployees(file));
+
+        verify(employeeRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void rejectsDuplicateEmailsWithinTheWorkbook() throws IOException {
+        MockMultipartFile file = workbook(HEADERS,
+                List.of("P00001", "Asha", "Rao", "Finance", "Analyst", "Pune", "9876543210", "same@example.com", "India"),
+                List.of("P00002", "Ravi", "Shah", "Engineering", "Developer", "Mumbai", "9876543211", "same@example.com", "India"));
+        when(employeeRepository.getActiveEmployeeCodes()).thenReturn(List.of());
+        when(employeeRepository.getActivePhones()).thenReturn(List.of());
+        when(employeeRepository.getActiveEmails()).thenReturn(List.of());
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> service.importEmployees(file));
+
+        assertTrue(error.getMessage().contains("Duplicate email"));
         verify(employeeRepository, never()).saveAll(any());
     }
 

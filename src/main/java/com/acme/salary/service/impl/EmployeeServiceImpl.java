@@ -102,13 +102,31 @@ public class EmployeeServiceImpl implements IEmployeeService {
             throw new IllegalArgumentException("The Excel workbook contains no employee records.");
         }
 
+        // Check for duplicate or existing employee codes, phones or emails
         Set<String> employeeCodes = new HashSet<>();
+        Set<String> existingEmployeeCodes = new HashSet<>(employeeRepository.getActiveEmployeeCodes());
+        Set<String> phones = new HashSet<>();
+        Set<String> existingPhones = new HashSet<>(employeeRepository.getActivePhones());
+        Set<String> emails = new HashSet<>();
+        Set<String> existingEmails =  new HashSet<>(employeeRepository.getActiveEmails());
         for (EmployeeDto employee : employees) {
             if (!employeeCodes.add(employee.getEmployeeCode())) {
                 throw new IllegalArgumentException("Duplicate employeeCode " + employee.getEmployeeCode() + " in the workbook.");
             }
-            if (employeeRepository.existsById(employee.getEmployeeCode())) {
+            if (existingEmployeeCodes.contains(employee.getEmployeeCode())) {
                 throw new ResourceAlreadyExistsException("Employee", "employeeCode", employee.getEmployeeCode());
+            }
+            if (!phones.add(employee.getPhone())) {
+                throw new IllegalArgumentException("Duplicate phone number " + employee.getPhone() + " in the workbook.");
+            }
+            if (existingPhones.contains(employee.getPhone())) {
+                throw new ResourceAlreadyExistsException("Phone", "phone", employee.getPhone());
+            }
+            if (!emails.add(employee.getEmail())) {
+                throw new IllegalArgumentException("Duplicate email " + employee.getEmail() + " in the workbook.");
+            }
+            if (existingEmails.contains(employee.getEmail())) {
+                throw new ResourceAlreadyExistsException("Email", "email", employee.getEmail());
             }
         }
 

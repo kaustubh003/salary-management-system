@@ -7,6 +7,7 @@ import com.acme.salary.entity.Payment;
 import com.acme.salary.entity.Salary;
 import com.acme.salary.enums.LeaveType;
 import com.acme.salary.enums.PaidStatus;
+import com.acme.salary.exception.ResourceAlreadyExistsException;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -133,6 +134,26 @@ class PaymentServiceImplTests {
     }
 
     @Test
+    void addPaymentDoesNotRecordPaymentAlreadyPaid() {
+        when(salaryRepository.findById(1L)).thenReturn(Optional.of(salaryOfEmployee()));
+        when(availableLeavesRepository.findByEmployeeCodeOrderByEmployeeCodeAscLeaveTypeAsc(any(String.class))).thenReturn(List.of());
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentRepository.existsByEmployeeCodeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual("P00001", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31))).thenReturn(false);
+
+        PaymentDto result = service.addPayment(request(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)));
+
+        assertEquals("P00001", result.getEmployeeCode());
+        assertEquals(PaidStatus.PAID, result.getPaidStatus());
+        assertEquals(0, BigDecimal.ZERO.compareTo(BigDecimal.valueOf(result.getUnpaidLeaveDays())));
+        assertEquals(0, new BigDecimal("73800.00").compareTo(result.getNetSalary()));
+        assertNotNull(result.getPaidDate());
+        assertNotNull(result.getPaidTime());
+
+        when(paymentRepository.existsByEmployeeCodeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual("P00001", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31))).thenReturn(true);
+        assertThrows(ResourceAlreadyExistsException.class, () -> service.addPayment(request(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31))));
+    }
+
+    @Test
     void addPaymentThrowsWhenSalaryNotFound() {
         when(salaryRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -149,7 +170,7 @@ class PaymentServiceImplTests {
                 () -> service.addPayment(request(LocalDate.of(2025, 12, 1), LocalDate.of(2025, 12, 31))));
         verify(paymentRepository, never()).save(any(Payment.class));
     }
-    
+
     @Test
     void addPaymentDeductsUnpaidLeaveInThePeriod() {
         when(salaryRepository.findById(1L)).thenReturn(Optional.of(salaryOfEmployee()));
@@ -158,6 +179,7 @@ class PaymentServiceImplTests {
         when(leaveRepository.countByEmployeeCodeAndLeaveTypeAndLeaveDateBetween(
                 "P00001", LeaveType.UNPAID, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
                 .thenReturn(2L);
+        when(paymentRepository.existsByEmployeeCodeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual("P00001", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31))).thenReturn(false);
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         PaymentDto result = service.addPayment(request(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)));
@@ -175,6 +197,7 @@ class PaymentServiceImplTests {
         when(leaveRepository.countByEmployeeCodeAndLeaveTypeAndLeaveDateBetween(
                 "P00001", LeaveType.UNPAID, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
                 .thenReturn(2L);
+        when(paymentRepository.existsByEmployeeCodeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual("P00001", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31))).thenReturn(false);
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         PaymentDto result = service.addPayment(request(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)));

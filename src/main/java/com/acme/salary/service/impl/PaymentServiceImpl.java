@@ -5,6 +5,7 @@ import com.acme.salary.entity.AvailableLeaves;
 import com.acme.salary.entity.Payment;
 import com.acme.salary.entity.Salary;
 import com.acme.salary.enums.LeaveType;
+import com.acme.salary.exception.ResourceAlreadyExistsException;
 import com.acme.salary.exception.ResourceNotFoundException;
 import com.acme.salary.mapper.PaymentMapper;
 import com.acme.salary.repository.*;
@@ -70,6 +71,10 @@ public class PaymentServiceImpl implements IPaymentService {
                     availableLeavesRepository.save(availableLeaves);
                 }
             }
+        }
+
+        if (paymentRepository.existsByEmployeeCodeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(salary.getEmployee().getEmployeeCode(), paymentDto.getPeriodStart(), paymentDto.getPeriodEnd())) {
+            throw new ResourceAlreadyExistsException("Payment", "periodStart and periodEnd", paymentDto.getPeriodStart().toString() + " to " + paymentDto.getPeriodEnd());
         }
 
         Payment payment = Payment.record(salary, paymentDto.getPeriodStart(), paymentDto.getPeriodEnd(),
