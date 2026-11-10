@@ -33,7 +33,8 @@ public class SalaryController {
         return ResponseEntity.ok(salaryService.getSalaries(employeeCode));
     }
 
-    @Operation(summary = "Add a salary record to an employee. A new open-ended salary ends the previous one the day before it starts")    @PostMapping(path = "/employees/{employeeCode}/salaries", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Add a salary record to an employee. Its effective date range must not overlap another salary")
+    @PostMapping(path = "/employees/{employeeCode}/salaries", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<SalaryDto> addSalary(@PathVariable String employeeCode,
                                                @Valid @RequestBody SalaryDto salaryDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(salaryService.addSalary(employeeCode, salaryDto));

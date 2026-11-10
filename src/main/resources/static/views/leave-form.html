@@ -1,0 +1,47 @@
+<section class="employee-page leave-page">
+  <div class="employee-page-heading">
+    <div>
+      <a class="back-link" ui-sref="dashboard.leaveManagement.list"><span aria-hidden="true">←</span> Back to Leave
+        Management</a>
+      <p class="eyebrow employee-details-eyebrow">TIME OFF &amp; ATTENDANCE</p>
+      <h1>Add Leave</h1>
+      <p class="employee-page-subtitle">Record a leave for employee {{ employeeCode }}.</p>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+
+  <form name="leaveForm" class="employee-panel employee-form-panel leave-form-panel" ng-submit="save(leaveForm)"
+    novalidate>
+    <div class="panel-heading">
+      <div>
+        <h2>Leave information</h2>
+        <p>Choose the date and leave type to record.</p>
+      </div>
+    </div>
+
+    <div class="employee-form-grid leave-form-grid">
+      <label class="form-field">
+        <span>Employee Code</span>
+        <input type="text" ng-value="employeeCode" readonly />
+      </label>
+      <label class="form-field">
+        <span>Leave Date *</span>
+        <input type="date" name="leaveDate" ng-model="leave.leaveDate" required />
+      </label>
+      <label class="form-field">
+        <span>Leave Type *</span>
+        <select name="leaveType" ng-model="leave.leaveType" ng-options="type for type in leaveTypes" required>
+          <option value="">Select a leave type</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <span class="form-action-spacer"></span>
+      <button class="button button-secondary" type="button" ng-click="cancel()" ng-disabled="saving">Cancel</button>
+      <button class="button button-primary" type="submit" ng-disabled="leaveForm.$invalid || saving">{{ saving ?
+        'Saving...' : 'Save' }}</button>
+    </div>
+  </form>
+</section>

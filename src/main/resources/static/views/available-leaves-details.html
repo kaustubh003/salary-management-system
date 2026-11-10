@@ -1,0 +1,51 @@
+<section class="employee-page leave-page">
+  <div class="employee-page-heading">
+    <div>
+      <a class="back-link" ui-sref="dashboard.leaveManagement.list"><span aria-hidden="true">←</span> Back to Leave
+        Management</a>
+      <p class="eyebrow employee-details-eyebrow">TIME OFF &amp; ATTENDANCE</p>
+      <h1>Available Leaves Details</h1>
+      <p class="employee-page-subtitle">Employee {{ employeeCode }} · Update the available leave balance.</p>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+  <div class="employee-panel loading-panel" ng-if="loading">Loading available leave details...</div>
+
+  <form name="availableLeavesForm" class="employee-panel employee-form-panel leave-form-panel"
+    ng-if="availableLeaves && !loading" ng-submit="save(availableLeavesForm)" novalidate>
+    <div class="panel-heading">
+      <div>
+        <h2>Leave balance</h2>
+        <p>Choose the leave type and set its available balance.</p>
+      </div>
+    </div>
+
+    <div class="employee-form-grid leave-form-grid">
+      <label class="form-field">
+        <span>Employee Code</span>
+        <input type="text" ng-value="employeeCode" readonly />
+      </label>
+      <label class="form-field">
+        <span>Leave Type *</span>
+        <select name="leaveType" ng-model="availableLeaves.leaveType" ng-options="type for type in leaveTypes"
+          required></select>
+      </label>
+      <label class="form-field">
+        <span>Available Leaves *</span>
+        <input type="number" name="availableLeaves" ng-model="availableLeaves.availableLeaves" min="0" step="1"
+          required />
+        <small class="field-error"
+          ng-if="availableLeavesForm.availableLeaves.$touched && availableLeavesForm.availableLeaves.$invalid">Enter a
+          non-negative whole number.</small>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <span class="form-action-spacer"></span>
+      <button class="button button-secondary" type="button" ng-click="cancel()" ng-disabled="saving">Cancel</button>
+      <button class="button button-primary" type="submit" ng-disabled="availableLeavesForm.$invalid || saving">{{ saving
+        ? 'Saving...' : 'Update and Save' }}</button>
+    </div>
+  </form>
+</section>

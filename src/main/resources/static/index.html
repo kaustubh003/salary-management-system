@@ -1,21 +1,32 @@
 <!doctype html>
 <html lang="en" ng-app="salaryManagementApp">
-  <head>
-    <meta charset="UTF-8" />
-    <title ng-bind="pageTitle">Salary Management App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script>document.write('<base href="' + document.location + '" />');</script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/1.1.2/angular-ui-router.min.js"></script>
-    <script src="app.js"></script>
-    <script src="loginController.js"></script>
-    <script src="dashboardController.js"></script>
-    <script src="loginService.js"></script>
-    <script src="employeeService.js"></script>
-    <script src="employeeController.js"></script>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-      <div ui-view></div>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <title ng-bind="pageTitle">Salary Management App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>document.write('<base href="' + document.location + '" />');</script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/1.1.2/angular-ui-router.min.js"></script>
+  <script src="app.js"></script>
+  <script src="loginController.js"></script>
+  <script src="dashboardController.js"></script>
+  <script src="loginService.js"></script>
+  <script src="employeeService.js"></script>
+  <script src="employeeController.js"></script>
+  <script src="salaryService.js"></script>
+  <script src="salaryController.js"></script>
+  <script src="leaveService.js"></script>
+  <script src="leaveController.js"></script>
+  <script src="paymentService.js"></script>
+  <script src="paymentController.js"></script>
+  <script src="payslipService.js"></script>
+  <script src="payslipController.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div ui-view></div>
+</body>
+
 </html>

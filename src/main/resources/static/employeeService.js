@@ -40,6 +40,12 @@ app.factory('EmployeeService', function ($http) {
     };
 });
 
+app.factory('EmployeeSelection', function () {
+    return {
+        selected: {}
+    };
+});
+
 app.directive('employeeFile', function () {
     return {
         scope: { onFile: '&' },

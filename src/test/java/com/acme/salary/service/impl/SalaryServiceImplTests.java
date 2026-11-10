@@ -117,30 +117,70 @@ class SalaryServiceImplTests {
     }
 
     @Test
-    void addSalaryClosesThePreviousOpenEndedSalary() {
+    void addSalaryRejectsAnOverlappingOpenEndedSalary() {
         Employee employee = employee();
         Salary previous = salary(LocalDate.of(2025, 1, 1), null);
         employee.addSalary(previous);
         when(employeeRepository.findById("P00001")).thenReturn(Optional.of(employee));
-        when(salaryRepository.save(any(Salary.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.addSalary("P00001", salaryDto());   // starts 2026-01-01, open-ended
+        assertThrows(IllegalArgumentException.class, () -> service.addSalary("P00001", salaryDto()));
 
-        assertEquals(LocalDate.of(2025, 12, 31), previous.getEffectiveTill());
-        assertEquals(2, employee.getSalaries().size());
+        assertNull(previous.getEffectiveTill());
+        assertEquals(1, employee.getSalaries().size());
+        verify(salaryRepository, never()).save(any(Salary.class));
     }
 
     @Test
-    void addSalaryLeavesAnAlreadyClosedSalaryAlone() {
+    void addSalaryRejectsNewStartEqualToExistingEnd() {
         Employee employee = employee();
         Salary closed = salary(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31));
         employee.addSalary(closed);
         when(employeeRepository.findById("P00001")).thenReturn(Optional.of(employee));
-        when(salaryRepository.save(any(Salary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        SalaryDto update = salaryDto();
+        update.setEffectiveFrom(LocalDate.of(2025, 12, 31));
 
-        service.addSalary("P00001", salaryDto());
+        assertThrows(IllegalArgumentException.class, () -> service.addSalary("P00001", update));
 
         assertEquals(LocalDate.of(2025, 12, 31), closed.getEffectiveTill());
+        verify(salaryRepository, never()).save(any(Salary.class));
+    }
+
+    @Test
+    void addSalaryRejectsNewStartWithinExistingRange() {
+        Employee employee = employee();
+        employee.addSalary(salary(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)));
+        when(employeeRepository.findById("P00001")).thenReturn(Optional.of(employee));
+        SalaryDto update = salaryDto();
+        update.setEffectiveFrom(LocalDate.of(2025, 6, 1));
+
+        assertThrows(IllegalArgumentException.class, () -> service.addSalary("P00001", update));
+        verify(salaryRepository, never()).save(any(Salary.class));
+    }
+
+    @Test
+    void addSalaryRejectsNewEndWithinExistingRange() {
+        Employee employee = employee();
+        employee.addSalary(salary(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)));
+        when(employeeRepository.findById("P00001")).thenReturn(Optional.of(employee));
+        SalaryDto update = salaryDto();
+        update.setEffectiveFrom(LocalDate.of(2024, 1, 1));
+        update.setEffectiveTill(LocalDate.of(2025, 6, 1));
+
+        assertThrows(IllegalArgumentException.class, () -> service.addSalary("P00001", update));
+        verify(salaryRepository, never()).save(any(Salary.class));
+    }
+
+    @Test
+    void addSalaryRejectsNewEndEqualToExistingStart() {
+        Employee employee = employee();
+        employee.addSalary(salary(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)));
+        when(employeeRepository.findById("P00001")).thenReturn(Optional.of(employee));
+        SalaryDto update = salaryDto();
+        update.setEffectiveFrom(LocalDate.of(2024, 1, 1));
+        update.setEffectiveTill(LocalDate.of(2025, 1, 1));
+
+        assertThrows(IllegalArgumentException.class, () -> service.addSalary("P00001", update));
+        verify(salaryRepository, never()).save(any(Salary.class));
     }
 
     @Test
@@ -185,7 +225,9 @@ class SalaryServiceImplTests {
 
     @Test
     void updateSalaryChangesFieldsAndSaves() {
+        Employee employee = employee();
         Salary existing = salary(LocalDate.of(2026, 1, 1), null);
+        employee.addSalary(existing);
         when(salaryRepository.findById(1L)).thenReturn(Optional.of(existing));
         SalaryDto update = salaryDto();
         update.setBasicSalary(new BigDecimal("70000.00"));
@@ -196,6 +238,24 @@ class SalaryServiceImplTests {
         assertEquals(0, new BigDecimal("70000.00").compareTo(existing.getBasicSalary()));
         assertEquals(0, new BigDecimal("83800.00").compareTo(existing.getNetSalary()));
         verify(salaryRepository).save(existing);
+    }
+
+    @Test
+    void updateSalaryRejectsDatesOverlappingAnotherSalary() {
+        Employee employee = employee();
+        Salary existing = salary(LocalDate.of(2026, 1, 1), null);
+        Salary previous = salary(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31));
+        employee.addSalary(existing);
+        employee.addSalary(previous);
+        when(salaryRepository.findById(1L)).thenReturn(Optional.of(existing));
+        SalaryDto update = salaryDto();
+        update.setEffectiveFrom(LocalDate.of(2025, 12, 31));
+
+        assertThrows(IllegalArgumentException.class, () -> service.updateSalary(1L, update));
+
+        assertEquals(LocalDate.of(2026, 1, 1), existing.getEffectiveFrom());
+        assertNull(existing.getEffectiveTill());
+        verify(salaryRepository, never()).save(any(Salary.class));
     }
 
     @Test

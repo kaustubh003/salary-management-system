@@ -1,0 +1,110 @@
+<section class="employee-page payslip-page">
+  <div class="employee-page-heading">
+    <div>
+      <p class="eyebrow">PAY &amp; COMPENSATION</p>
+      <h1>Payment Slips</h1>
+      <p class="employee-page-subtitle">Generate and download payment slips for an employee.</p>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+  <p class="employee-alert employee-alert-success" role="status" ng-if="notice">{{ notice }}</p>
+
+  <section class="employee-panel salary-search-panel">
+    <form class="salary-search-form" ng-submit="search()">
+      <label class="salary-search-field">
+        <span>Employee Code</span>
+        <input type="text" ng-model="employeeCode" placeholder="Enter employee code" autocomplete="off" required />
+      </label>
+      <button class="button button-primary" type="submit" ng-disabled="loading">Search</button>
+    </form>
+  </section>
+
+  <section class="employee-panel payslip-list-panel" ng-if="employeeFound">
+    <div class="salary-list-heading">
+      <div>
+        <h2>Payment Records</h2>
+        <p>Employee code <strong>{{ employeeCode }}</strong> · {{ totalElements }} payment(s)</p>
+      </div>
+      <div class="salary-list-actions">
+        <button class="button button-secondary" type="button" ng-if="selectedCount > 0" ng-click="generateSelected()"
+          ng-disabled="generating">
+          {{ generating ? 'Generating...' : 'Generate' }} <span class="selected-count">{{ selectedCount }}</span>
+        </button>
+        <button class="button button-primary" type="button" ng-if="selectedCount > 0" ng-click="generateAll()"
+          ng-disabled="generating">
+          Generate All
+        </button>
+      </div>
+    </div>
+
+    <p class="payslip-instruction">Generate a payslip first. Once generated, use Download on its row to save the PDF.
+    </p>
+
+    <div class="employee-table-wrap payslip-table-wrap">
+      <table class="employee-table payslip-table">
+        <thead>
+          <tr>
+            <th class="selection-column">
+              <input type="checkbox" aria-label="Select all payments on this page" ng-checked="isAllSelected()"
+                ng-click="toggleAll()" />
+            </th>
+            <th>Employee Code</th>
+            <th>Period Start</th>
+            <th>Period End</th>
+            <th>Paid Date</th>
+            <th>Paid Time</th>
+            <th>Paid Status</th>
+            <th>Unpaid Leave Days</th>
+            <th>Leave Deduction</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-if="loading">
+            <td class="table-message" colspan="10">Loading payment records...</td>
+          </tr>
+          <tr ng-if="!loading && payments.length === 0">
+            <td class="table-message" colspan="10">No payments found for this employee.</td>
+          </tr>
+          <tr ng-repeat="payment in payments track by $index">
+            <td class="selection-column">
+              <input type="checkbox"
+                aria-label="Select payment for period {{ payment.periodStart | date:'mediumDate' }}"
+                ng-model="selected[payment.paymentID]" ng-change="updateSelectionCount()" />
+            </td>
+            <td><span class="employee-code">{{ payment.employeeCode }}</span></td>
+            <td>{{ payment.periodStart | date:'mediumDate' }}</td>
+            <td>{{ payment.periodEnd | date:'mediumDate' }}</td>
+            <td>{{ payment.paidDate | date:'mediumDate' }}</td>
+            <td>{{ payment.paidTime }}</td>
+            <td><span class="payment-status">{{ payment.paidStatus }}</span></td>
+            <td>{{ payment.unpaidLeaveDays }}</td>
+            <td>{{ payment.leaveDeduction | number:2 }}</td>
+            <td>
+              <button class="button button-secondary payslip-download-button" type="button" ng-click="download(payment)"
+                ng-disabled="downloading[payment.paymentID]">
+                {{ downloading[payment.paymentID] ? 'Downloading...' : 'Download' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="employee-table-footer payment-pagination" ng-if="totalPages > 0">
+      <div class="payment-page-size">
+        <label for="payslipPageSize">Rows per page</label>
+        <select id="payslipPageSize" ng-model="pagination.pageSize" ng-options="size for size in pageSizes"
+          ng-change="changePageSize()"></select>
+      </div>
+      <div class="employee-pagination">
+        <span>Page {{ page + 1 }} of {{ totalPages }}</span>
+        <button type="button" ng-click="previousPage()" ng-disabled="page === 0 || loading"
+          aria-label="Previous page">‹</button>
+        <button type="button" ng-click="nextPage()" ng-disabled="page + 1 >= totalPages || loading"
+          aria-label="Next page">›</button>
+      </div>
+    </div>
+  </section>
+</section>

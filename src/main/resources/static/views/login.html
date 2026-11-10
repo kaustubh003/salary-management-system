@@ -29,9 +29,11 @@
 
       <form class="login-form" ng-submit="formSubmit()">
         <label for="username">Username</label>
-        <input id="username" type="text" ng-model="username" placeholder="Enter your username" autocomplete="username" required />
+        <input id="username" type="text" ng-model="username" placeholder="Enter your username" autocomplete="username"
+          required />
         <label for="password">Password</label>
-        <input id="password" type="password" ng-model="password" placeholder="Enter your password" autocomplete="current-password" required />
+        <input id="password" type="password" ng-model="password" placeholder="Enter your password"
+          autocomplete="current-password" required />
 
         <button type="submit" ng-disabled="isSubmitting">
           <span>{{ isSubmitting ? 'Signing in...' : 'Sign in' }}</span>

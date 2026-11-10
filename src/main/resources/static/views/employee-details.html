@@ -1,10 +1,12 @@
 <section class="employee-page">
   <div class="employee-page-heading">
     <div>
-      <a class="back-link" ui-sref="dashboard.employeeMaster.list"><span aria-hidden="true">←</span> Back to Employee Master</a>
+      <a class="back-link" ui-sref="dashboard.employeeMaster.list"><span aria-hidden="true">←</span> Back to Employee
+        Master</a>
       <p class="eyebrow employee-details-eyebrow">EMPLOYEE RECORD</p>
       <h1>Employee Details</h1>
-      <p class="employee-page-subtitle" ng-if="employee">{{ employee.firstName }} {{ employee.lastName }} · {{ employee.employeeCode }}</p>
+      <p class="employee-page-subtitle" ng-if="employee">{{ employee.firstName }} {{ employee.lastName }} · {{
+        employee.employeeCode }}</p>
     </div>
   </div>
 
@@ -15,7 +17,10 @@
   <div ng-if="employee && !loading">
     <form name="employeeForm" class="employee-panel employee-form-panel" ng-submit="save()" novalidate>
       <div class="panel-heading">
-        <div><h2>Personal information</h2><p>Update the employee's contact and role information.</p></div>
+        <div>
+          <h2>Personal information</h2>
+          <p>Update the employee's contact and role information.</p>
+        </div>
       </div>
       <div class="employee-form-grid">
         <label class="form-field">
@@ -45,7 +50,8 @@
         <label class="form-field">
           <span>Phone</span>
           <input type="tel" name="phone" ng-model="employee.phone" required ng-pattern="/^[0-9]{10}$/" maxlength="10" />
-          <small class="field-error" ng-if="employeeForm.phone.$touched && employeeForm.phone.$error.pattern">Enter a 10-digit phone number.</small>
+          <small class="field-error" ng-if="employeeForm.phone.$touched && employeeForm.phone.$error.pattern">Enter a
+            10-digit phone number.</small>
         </label>
         <label class="form-field">
           <span>Country</span>
@@ -57,27 +63,42 @@
         </label>
       </div>
       <div class="form-actions">
-        <button class="button button-danger-outline" type="button" ng-click="delete()" ng-disabled="deleting || saving">{{ deleting ? 'Deleting...' : 'Delete' }}</button>
+        <button class="button button-danger-outline" type="button" ng-click="delete()"
+          ng-disabled="deleting || saving">{{ deleting ? 'Deleting...' : 'Delete' }}</button>
         <span class="form-action-spacer"></span>
-        <button class="button button-secondary" type="button" ng-click="cancel()" ng-disabled="saving || deleting">Cancel</button>
-        <button class="button button-primary" type="submit" ng-disabled="employeeForm.$invalid || saving || deleting">{{ saving ? 'Saving...' : 'Update and Save' }}</button>
+        <button class="button button-secondary" type="button" ng-click="cancel()"
+          ng-disabled="saving || deleting">Cancel</button>
+        <button class="button button-primary" type="submit" ng-disabled="employeeForm.$invalid || saving || deleting">{{
+          saving ? 'Saving...' : 'Update and Save' }}</button>
       </div>
     </form>
 
     <section class="employee-panel salary-panel">
       <div class="panel-heading">
-        <div><h2>Current salary details</h2><p>Salary currently in force for this employee.</p></div>
+        <div>
+          <h2>Current salary details</h2>
+          <p>Salary currently in force for this employee.</p>
+        </div>
       </div>
       <div class="salary-grid" ng-if="employee.salary">
-        <div class="salary-item salary-highlight"><span>Net Salary</span><strong>{{ employee.salary.currency }} {{ employee.salary.netSalary | number:2 }}</strong></div>
-        <div class="salary-item"><span>Basic Salary</span><strong>{{ employee.salary.currency }} {{ employee.salary.basicSalary | number:2 }}</strong></div>
-        <div class="salary-item"><span>HRA</span><strong>{{ employee.salary.currency }} {{ employee.salary.hra | number:2 }}</strong></div>
-        <div class="salary-item"><span>DA</span><strong>{{ employee.salary.currency }} {{ employee.salary.da | number:2 }}</strong></div>
-        <div class="salary-item"><span>Gross Salary</span><strong>{{ employee.salary.currency }} {{ employee.salary.grossSalary | number:2 }}</strong></div>
-        <div class="salary-item"><span>Tax</span><strong>{{ employee.salary.currency }} {{ employee.salary.tax | number:2 }}</strong></div>
-        <div class="salary-item"><span>EPF</span><strong>{{ employee.salary.currency }} {{ employee.salary.epf | number:2 }}</strong></div>
-        <div class="salary-item"><span>Effective From</span><strong>{{ employee.salary.effectiveFrom | date:'mediumDate' }}</strong></div>
-        <div class="salary-item"><span>Effective Till</span><strong>{{ employee.salary.effectiveTill ? (employee.salary.effectiveTill | date:'mediumDate') : 'Ongoing' }}</strong></div>
+        <div class="salary-item salary-highlight"><span>Net Salary</span><strong>{{ employee.salary.currency }} {{
+            employee.salary.netSalary | number:2 }}</strong></div>
+        <div class="salary-item"><span>Basic Salary</span><strong>{{ employee.salary.currency }} {{
+            employee.salary.basicSalary | number:2 }}</strong></div>
+        <div class="salary-item"><span>HRA</span><strong>{{ employee.salary.currency }} {{ employee.salary.hra |
+            number:2 }}</strong></div>
+        <div class="salary-item"><span>DA</span><strong>{{ employee.salary.currency }} {{ employee.salary.da | number:2
+            }}</strong></div>
+        <div class="salary-item"><span>Gross Salary</span><strong>{{ employee.salary.currency }} {{
+            employee.salary.grossSalary | number:2 }}</strong></div>
+        <div class="salary-item"><span>Tax</span><strong>{{ employee.salary.currency }} {{ employee.salary.tax |
+            number:2 }}</strong></div>
+        <div class="salary-item"><span>EPF</span><strong>{{ employee.salary.currency }} {{ employee.salary.epf |
+            number:2 }}</strong></div>
+        <div class="salary-item"><span>Effective From</span><strong>{{ employee.salary.effectiveFrom | date:'mediumDate'
+            }}</strong></div>
+        <div class="salary-item"><span>Effective Till</span><strong>{{ employee.salary.effectiveTill ?
+            (employee.salary.effectiveTill | date:'mediumDate') : 'Ongoing' }}</strong></div>
       </div>
       <p class="empty-salary" ng-if="!employee.salary">No salary details are currently available for this employee.</p>
     </section>

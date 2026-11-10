@@ -42,28 +42,30 @@ public class SalaryServiceImpl implements ISalaryService {
     public SalaryDto addSalary(String employeeCode, SalaryDto salaryDto) {
         Employee employee = findEmployee(employeeCode);
         Salary salary = SalaryMapper.toEntity(salaryDto);
-        if (salary.getEffectiveTill() == null) {
-            closeCurrentOpenSalary(employee, salary.getEffectiveFrom());
-        }
+        validateNoOverlappingSalary(employee, salary.getEffectiveFrom(), salary.getEffectiveTill(), null);
         employee.addSalary(salary);
         return SalaryMapper.toDto(salaryRepository.save(salary));
     }
 
-    /**
-     * An employee has at most one open-ended salary. When a new open-ended salary is added,
-     * the previous one ends the day before the new one starts.
-     */
-    private void closeCurrentOpenSalary(Employee employee, LocalDate newStart) {
+    private void validateNoOverlappingSalary(Employee employee, LocalDate effectiveFrom,
+                                             LocalDate effectiveTill, Salary excludedSalary) {
         for (Salary existing : employee.getSalaries()) {
-            if (existing.getEffectiveTill() != null) {
+            if (existing == excludedSalary || (excludedSalary != null
+                    && excludedSalary.getId() != null
+                    && excludedSalary.getId().equals(existing.getId()))) {
                 continue;
             }
-            if (!newStart.isAfter(existing.getEffectiveFrom())) {
+
+            boolean overlapsExistingStart = existing.getEffectiveTill() == null
+                    || !effectiveFrom.isAfter(existing.getEffectiveTill());
+            boolean overlapsNewEnd = effectiveTill == null
+                    || !existing.getEffectiveFrom().isAfter(effectiveTill);
+            if (overlapsExistingStart && overlapsNewEnd) {
                 throw new IllegalArgumentException(
-                        "A new open-ended salary must start after the current one, which starts on "
-                                + existing.getEffectiveFrom());
+                        "Salary effective date range overlaps an existing salary effective "
+                                + "date range from " + existing.getEffectiveFrom()
+                                + " to " + (existing.getEffectiveTill() == null ? "ongoing" : existing.getEffectiveTill()));
             }
-            existing.setEffectiveTill(newStart.minusDays(1));
         }
     }
 
@@ -71,6 +73,8 @@ public class SalaryServiceImpl implements ISalaryService {
     @Transactional
     public boolean updateSalary(Long salaryId, SalaryDto salaryDto) {
         Salary salary = findSalary(salaryId);
+        validateNoOverlappingSalary(salary.getEmployee(), salaryDto.getEffectiveFrom(),
+                salaryDto.getEffectiveTill(), salary);
         SalaryMapper.updateEntity(salaryDto, salary);
         salaryRepository.save(salary);
         return true;

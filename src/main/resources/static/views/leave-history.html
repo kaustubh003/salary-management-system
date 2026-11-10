@@ -1,0 +1,37 @@
+<section class="employee-page leave-page">
+  <div class="employee-page-heading">
+    <div>
+      <p class="eyebrow">TIME OFF &amp; ATTENDANCE</p>
+      <h1>Leave History</h1>
+      <p class="employee-page-subtitle">Leaves recorded for employee {{ employeeCode }}.</p>
+    </div>
+    <button class="button button-secondary" type="button" ng-click="back()">Back</button>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+
+  <section class="employee-panel leave-history-panel">
+    <div class="employee-table-wrap">
+      <table class="employee-table leave-table">
+        <thead>
+          <tr>
+            <th>Leave Date</th>
+            <th>Leave Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-if="loading">
+            <td class="table-message" colspan="2">Loading leave history...</td>
+          </tr>
+          <tr ng-if="!loading && leaves.length === 0">
+            <td class="table-message" colspan="2">No leave history found for this employee.</td>
+          </tr>
+          <tr ng-repeat="leave in leaves track by $index">
+            <td>{{ leave.leaveDate | date:'mediumDate' }}</td>
+            <td><span class="employee-code">{{ leave.leaveType }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

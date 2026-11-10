@@ -49,6 +49,10 @@
       "value": ""
     },
     {
+      "key": "overlapTestSalaryId",
+      "value": ""
+    },
+    {
       "key": "paymentId",
       "value": ""
     },
@@ -437,7 +441,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"effectiveFrom\": \"2026-01-01\",\n  \"currency\": \"INR\",\n  \"basicSalary\": 60000.0,\n  \"hra\": 24000.0,\n  \"da\": 6000.0,\n  \"tax\": 9000.0,\n  \"epf\": 7200.0\n}",
+              "raw": "{\n  \"effectiveFrom\": \"2026-01-01\",\n  \"effectiveTill\": \"2026-12-31\",\n  \"currency\": \"INR\",\n  \"basicSalary\": 60000.0,\n  \"hra\": 24000.0,\n  \"da\": 6000.0,\n  \"tax\": 9000.0,\n  \"epf\": 7200.0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -455,6 +459,96 @@
                   "const json = pm.response.json();",
                   "pm.test(\"Net salary is gross minus tax and EPF\", function () { pm.expect(Number(json.netSalary)).to.eql(73800); });",
                   "pm.collectionVariables.set(\"salaryId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add salary with an overlapping effective range (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeCode}}/salaries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeCode}}",
+                "salaries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectiveFrom\": \"2026-12-31\",\n  \"effectiveTill\": \"2027-01-31\",\n  \"currency\": \"INR\",\n  \"basicSalary\": 60000.0,\n  \"hra\": 24000.0,\n  \"da\": 6000.0,\n  \"tax\": 9000.0,\n  \"epf\": 7200.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Error identifies the overlapping salary range\", function () { pm.expect(pm.response.json().errorMessage).to.include(\"overlaps an existing salary effective date range\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add a non-overlapping salary for overlap tests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeCode}}/salaries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeCode}}",
+                "salaries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectiveFrom\": \"2027-01-01\",\n  \"currency\": \"INR\",\n  \"basicSalary\": 60000.0,\n  \"hra\": 24000.0,\n  \"da\": 6000.0,\n  \"tax\": 9000.0,\n  \"epf\": 7200.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set(\"overlapTestSalaryId\", pm.response.json().id);"
                 ]
               }
             }
@@ -565,6 +659,50 @@
           ]
         },
         {
+          "name": "Update salary to overlap another effective range (expect 400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/salaries/{{salaryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "salaries",
+                "{{salaryId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effectiveFrom\": \"2026-01-01\",\n  \"effectiveTill\": \"2027-01-01\",\n  \"currency\": \"INR\",\n  \"basicSalary\": 60000.0,\n  \"hra\": 24000.0,\n  \"da\": 6000.0,\n  \"tax\": 9000.0,\n  \"epf\": 7200.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Error identifies the overlapping salary range\", function () { pm.expect(pm.response.json().errorMessage).to.include(\"overlaps an existing salary effective date range\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Update salary",
           "request": {
             "method": "PUT",
@@ -587,7 +725,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"effectiveFrom\": \"2026-01-01\",\n  \"currency\": \"INR\",\n  \"basicSalary\": 70000.0,\n  \"hra\": 24000.0,\n  \"da\": 6000.0,\n  \"tax\": 9000.0,\n  \"epf\": 7200.0\n}",
+              "raw": "{\n  \"effectiveFrom\": \"2026-01-01\",\n  \"effectiveTill\": \"2026-12-31\",\n  \"currency\": \"INR\",\n  \"basicSalary\": 70000.0,\n  \"hra\": 24000.0,\n  \"da\": 6000.0,\n  \"tax\": 9000.0,\n  \"epf\": 7200.0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2585,6 +2723,35 @@
           ]
         },
         {
+          "name": "Delete overlap test salary",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/salaries/{{overlapTestSalaryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "salaries",
+                "{{overlapTestSalaryId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Delete salary",
           "request": {
             "method": "DELETE",
@@ -2644,7 +2811,7 @@
           ]
         }
       ],
-      "description": "Leaves and payments cannot be deleted, so only the balances and the salary are removed and the employee deactivated. Deleting the salary leaves the payments and payslips untouched."
+      "description": "Leaves and payments cannot be deleted, so only the balances and salaries are removed and the employee deactivated. Deleting salaries leaves the payments and payslips untouched."
     },
     {
       "name": "10. Security",

@@ -1,7 +1,8 @@
 <section class="employee-page">
   <div class="employee-page-heading">
     <div>
-      <a class="back-link" ui-sref="dashboard.employeeMaster.list"><span aria-hidden="true">←</span> Back to Employee Master</a>
+      <a class="back-link" ui-sref="dashboard.employeeMaster.list"><span aria-hidden="true">←</span> Back to Employee
+        Master</a>
       <p class="eyebrow employee-details-eyebrow">PEOPLE DIRECTORY</p>
       <h1>Add Employee</h1>
       <p class="employee-page-subtitle">Create a new employee record.</p>
@@ -12,13 +13,18 @@
 
   <form name="employeeForm" class="employee-panel employee-form-panel" ng-submit="save()" novalidate>
     <div class="panel-heading">
-      <div><h2>Personal information</h2><p>Fields marked with * are required.</p></div>
+      <div>
+        <h2>Personal information</h2>
+        <p>Fields marked with * are required.</p>
+      </div>
     </div>
     <div class="employee-form-grid">
       <label class="form-field">
         <span>Employee Code *</span>
         <input type="text" name="employeeCode" ng-model="employee.employeeCode" required minlength="6" maxlength="6" />
-        <small class="field-error" ng-if="employeeForm.employeeCode.$touched && employeeForm.employeeCode.$error.minlength">Employee code must be 6 characters.</small>
+        <small class="field-error"
+          ng-if="employeeForm.employeeCode.$touched && employeeForm.employeeCode.$error.minlength">Employee code must be
+          6 characters.</small>
       </label>
       <label class="form-field">
         <span>First Name *</span>
@@ -43,7 +49,8 @@
       <label class="form-field">
         <span>Phone *</span>
         <input type="tel" name="phone" ng-model="employee.phone" required ng-pattern="/^[0-9]{10}$/" maxlength="10" />
-        <small class="field-error" ng-if="employeeForm.phone.$touched && employeeForm.phone.$error.pattern">Enter a 10-digit phone number.</small>
+        <small class="field-error" ng-if="employeeForm.phone.$touched && employeeForm.phone.$error.pattern">Enter a
+          10-digit phone number.</small>
       </label>
       <label class="form-field">
         <span>Country *</span>
@@ -57,7 +64,8 @@
     <div class="form-actions">
       <span class="form-action-spacer"></span>
       <button class="button button-secondary" type="button" ng-click="cancel()" ng-disabled="saving">Cancel</button>
-      <button class="button button-primary" type="submit" ng-disabled="employeeForm.$invalid || saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+      <button class="button button-primary" type="submit" ng-disabled="employeeForm.$invalid || saving">{{ saving ?
+        'Saving...' : 'Save' }}</button>
     </div>
   </form>
 </section>

@@ -6,9 +6,9 @@ function employeeErrorMessage(error, fallback) {
         : fallback;
 }
 
-app.controller('EmployeeMasterController', function ($scope, $rootScope, $state, $q, $window, EmployeeService) {
+app.controller('EmployeeMasterController', function ($scope, $rootScope, $state, $q, $window, EmployeeService, EmployeeSelection) {
     $scope.employees = [];
-    $scope.selected = {};
+    $scope.selected = EmployeeSelection.selected;
     $scope.filters = { employeeCode: '', department: '', jobTitle: '' };
     $scope.sortField = 'employeeCode';
     $scope.sortDescending = false;
@@ -124,7 +124,9 @@ app.controller('EmployeeMasterController', function ($scope, $rootScope, $state,
         $scope.notice = '';
         EmployeeService.importFile(file).then(function (response) {
             $scope.notice = response.data.importedCount + ' employee(s) imported.';
-            $scope.selected = {};
+            angular.forEach($scope.selected, function (isSelected, code) {
+                delete $scope.selected[code];
+            });
             updateSelectionCount();
             loadFilters();
             loadEmployees(0);
@@ -169,7 +171,7 @@ app.controller('EmployeeMasterController', function ($scope, $rootScope, $state,
             }
             angular.forEach($scope.employees, function (employee) {
                 if (!$scope.selected.hasOwnProperty(employee.employeeCode)) {
-                    $scope.selected[employee.employeeCode] = true;
+                    $scope.selected[employee.employeeCode] = false;
                 }
             });
             updateSelectionCount();

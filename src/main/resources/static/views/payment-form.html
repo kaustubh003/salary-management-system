@@ -1,0 +1,110 @@
+<section class="employee-page payment-page">
+  <div class="employee-page-heading">
+    <div>
+      <a class="back-link" ui-sref="dashboard.payments.list"><span aria-hidden="true">←</span> Back to Payments</a>
+      <p class="eyebrow employee-details-eyebrow">PAY &amp; COMPENSATION</p>
+      <h1>Add Payment</h1>
+      <p class="employee-page-subtitle">Record a payment for employee {{ employeeCode }}.</p>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+  <div class="employee-panel loading-panel" ng-if="loading">Loading employee salary and leave details...</div>
+
+  <form name="paymentForm" class="employee-panel employee-form-panel payment-form-panel" ng-if="!loading && !error"
+    ng-submit="save(paymentForm)" novalidate>
+    <div class="panel-heading">
+      <div>
+        <h2>Payment information</h2>
+        <p>Enter the pay period. Salary and leave amounts are previewed from the applicable records.</p>
+      </div>
+    </div>
+
+    <p class="payment-warning" role="note">Once a payment is recorded, it cannot be updated or deleted.</p>
+    <p class="payment-form-error"
+      ng-if="payment.periodStart && payment.periodEnd && payment.periodEnd < payment.periodStart">
+      Period End must be on or after Period Start.
+    </p>
+    <p class="payment-form-error"
+      ng-if="payment.periodStart && payment.periodEnd && payment.periodEnd >= payment.periodStart && !salary">
+      No salary record covers the entire selected pay period.
+    </p>
+
+    <div class="employee-form-grid payment-form-grid">
+      <label class="form-field">
+        <span>Employee Code</span>
+        <input type="text" ng-value="employeeCode" readonly />
+      </label>
+      <label class="form-field">
+        <span>Period Start *</span>
+        <input type="date" name="periodStart" ng-model="payment.periodStart" ng-change="updatePreview()" required />
+      </label>
+      <label class="form-field">
+        <span>Period End *</span>
+        <input type="date" name="periodEnd" ng-model="payment.periodEnd" ng-change="updatePreview()"
+          min="{{ payment.periodStart | date:'yyyy-MM-dd' }}" required />
+      </label>
+      <label class="form-field">
+        <span>Paid Date</span>
+        <input type="text" value="Set when recorded" readonly />
+      </label>
+      <label class="form-field">
+        <span>Paid Time</span>
+        <input type="text" value="Set when recorded" readonly />
+      </label>
+      <label class="form-field">
+        <span>Paid Status</span>
+        <input type="text" value="PAID on record" readonly />
+      </label>
+      <label class="form-field">
+        <span>Currency</span>
+        <input type="text" ng-value="salary.currency || '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>Basic Salary</span>
+        <input type="text" ng-value="salary ? (salary.basicSalary | number:2) : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>HRA</span>
+        <input type="text" ng-value="salary ? (salary.hra | number:2) : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>DA</span>
+        <input type="text" ng-value="salary ? (salary.da | number:2) : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>Gross Salary</span>
+        <input type="text" ng-value="salary ? (salary.grossSalary | number:2) : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>Tax</span>
+        <input type="text" ng-value="salary ? (salary.tax | number:2) : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>EPF</span>
+        <input type="text" ng-value="salary ? (salary.epf | number:2) : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>Net Salary</span>
+        <input type="text" ng-value="salary ? (salary.netSalary - leaveDeduction | number:2) : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>Unpaid Leave Days</span>
+        <input type="text" ng-value="salary ? unpaidLeaveDays : '—'" readonly />
+      </label>
+      <label class="form-field">
+        <span>Leave Deduction</span>
+        <input type="text" ng-value="salary ? (leaveDeduction | number:2) : '—'" readonly />
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <span class="form-action-spacer"></span>
+      <button class="button button-secondary" type="button" ng-click="cancel()" ng-disabled="saving">Cancel</button>
+      <button class="button button-primary" type="submit"
+        ng-disabled="paymentForm.$invalid || !salary || payment.periodEnd < payment.periodStart || saving">
+        {{ saving ? 'Recording...' : 'Record' }}
+      </button>
+    </div>
+  </form>
+</section>

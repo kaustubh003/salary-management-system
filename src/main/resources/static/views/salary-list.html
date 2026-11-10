@@ -1,0 +1,97 @@
+<section class="employee-page salary-page">
+  <div class="employee-page-heading">
+    <div>
+      <p class="eyebrow">PAY &amp; COMPENSATION</p>
+      <h1>Salary Management</h1>
+      <p class="employee-page-subtitle">Find an employee to review their salary history.</p>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+  <p class="employee-alert employee-alert-success" role="status" ng-if="notice">{{ notice }}</p>
+
+  <section class="employee-panel salary-search-panel">
+    <form class="salary-search-form" ng-submit="search()">
+      <label class="salary-search-field">
+        <span>Employee Code</span>
+        <input type="text" ng-model="employeeCode" placeholder="Enter employee code" autocomplete="off" required />
+      </label>
+      <button class="button button-primary" type="submit" ng-disabled="loading">
+        {{ loading ? 'Searching...' : 'Search' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="employee-panel salary-list-panel" ng-if="employee">
+    <div class="salary-list-heading">
+      <div>
+        <h2>{{ employee.firstName }} {{ employee.lastName }}</h2>
+        <p>Employee code <strong>{{ employee.employeeCode }}</strong> · {{ salaries.length }} salary record(s)</p>
+      </div>
+      <div class="salary-list-actions">
+        <button class="button button-danger-outline" type="button" ng-if="selectedCount > 0" ng-click="deleteSelected()"
+          ng-disabled="deleting">
+          {{ deleting ? 'Deleting...' : 'Delete Salary' }} <span class="selected-count">{{ selectedCount }}</span>
+        </button>
+        <button class="button button-primary" type="button" ng-click="addSalary()">Add Salary</button>
+      </div>
+    </div>
+
+    <div class="employee-table-wrap">
+      <table class="employee-table salary-table">
+        <thead>
+          <tr>
+            <th class="selection-column">
+              <input type="checkbox" aria-label="Select all salary records" ng-checked="isAllSelected()"
+                ng-click="toggleAll()" />
+            </th>
+            <th>Employee Code</th>
+            <th>Effective From</th>
+            <th>Effective Till</th>
+            <th>Currency</th>
+            <th>Basic Salary</th>
+            <th>HRA</th>
+            <th>DA</th>
+            <th>Tax</th>
+            <th>EPF</th>
+            <th>Gross Salary</th>
+            <th>Net Salary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-if="loading">
+            <td class="table-message" colspan="12">Loading salary records...</td>
+          </tr>
+          <tr ng-if="!loading && salaries.length === 0">
+            <td class="table-message" colspan="12">No salary records found for this employee.</td>
+          </tr>
+          <tr class="employee-row" role="link" ng-repeat="salary in salaries track by salary.id"
+            ng-click="openSalary(salary)" ng-keydown="$event.keyCode === 13 && openSalary(salary)" tabindex="0"
+            aria-label="View salary details for employee {{ employee.employeeCode }} effective {{ salary.effectiveFrom | date:'mediumDate' }}">
+            <td class="selection-column" ng-click="$event.stopPropagation()">
+              <input type="checkbox"
+                aria-label="Select salary record effective {{ salary.effectiveFrom | date:'mediumDate' }}"
+                ng-model="selected[salary.id]" ng-change="updateSelectionCount()" />
+            </td>
+            <td><span class="employee-code">{{ employee.employeeCode }}</span></td>
+            <td>{{ salary.effectiveFrom | date:'mediumDate' }}</td>
+            <td>{{ salary.effectiveTill ? (salary.effectiveTill | date:'mediumDate') : '—' }}</td>
+            <td>{{ salary.currency }}</td>
+            <td>{{ salary.basicSalary | number:2 }}</td>
+            <td>{{ salary.hra | number:2 }}</td>
+            <td>{{ salary.da | number:2 }}</td>
+            <td>{{ salary.tax | number:2 }}</td>
+            <td>{{ salary.epf | number:2 }}</td>
+            <td>{{ salary.grossSalary | number:2 }}</td>
+            <td><strong class="salary-net-value">{{ salary.netSalary | number:2 }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="employee-panel loading-panel salary-loading" ng-if="loading && !employee">Searching employee...</div>
+  <div class="employee-panel loading-panel salary-empty-state" ng-if="hasSearched && !loading && !employee && !error">
+    No employee was found for that code.
+  </div>
+</section>

@@ -10,19 +10,24 @@
       <a class="nav-link" ui-sref="dashboard" ng-class="{ 'active': $state.current.name === 'dashboard' }">
         <span class="nav-icon" aria-hidden="true">⌂</span><span>Overview</span>
       </a>
-      <a class="nav-link" ui-sref="dashboard.employeeMaster.list" ng-class="{ 'active': $state.includes('dashboard.employeeMaster') }">
+      <a class="nav-link" ui-sref="dashboard.employeeMaster.list"
+        ng-class="{ 'active': $state.includes('dashboard.employeeMaster') }">
         <span class="nav-icon" aria-hidden="true">♙</span><span>Employee Master</span>
       </a>
-      <a class="nav-link" ui-sref="dashboard.salaryManagement" ui-sref-active="active">
+      <a class="nav-link" ui-sref="dashboard.salaryManagement.list"
+        ng-class="{ 'active': $state.includes('dashboard.salaryManagement') }">
         <span class="nav-icon" aria-hidden="true">▤</span><span>Salary Management</span>
       </a>
-      <a class="nav-link" ui-sref="dashboard.leaveManagement" ui-sref-active="active">
+      <a class="nav-link" ui-sref="dashboard.leaveManagement.list"
+        ng-class="{ 'active': $state.includes('dashboard.leaveManagement') }">
         <span class="nav-icon" aria-hidden="true">▣</span><span>Leave Management</span>
       </a>
-      <a class="nav-link" ui-sref="dashboard.payments" ui-sref-active="active">
+      <a class="nav-link" ui-sref="dashboard.payments.list"
+        ng-class="{ 'active': $state.includes('dashboard.payments') }">
         <span class="nav-icon" aria-hidden="true">↗</span><span>Payments</span>
       </a>
-      <a class="nav-link" ui-sref="dashboard.paymentSlips" ui-sref-active="active">
+      <a class="nav-link" ui-sref="dashboard.paymentSlips.list"
+        ng-class="{ 'active': $state.includes('dashboard.paymentSlips') }">
         <span class="nav-icon" aria-hidden="true">▧</span><span>Payment Slips</span>
       </a>
     </nav>
@@ -35,7 +40,8 @@
 
   <div class="workspace">
     <header class="topbar">
-      <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>{{ $state.current.data.pageTitle || 'Dashboard' }}</strong></div>
+      <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>{{
+          $state.current.data.pageTitle || 'Dashboard' }}</strong></div>
       <div class="account">
         <div class="account-avatar" aria-hidden="true">{{ (user || 'U').charAt(0).toUpperCase() }}</div>
         <span class="account-name">{{ user || 'Employee' }}</span>
@@ -67,28 +73,36 @@
         </section>
 
         <div class="section-heading">
-          <div><h2>Your workspace</h2><p>Choose an area to get started.</p></div>
+          <div>
+            <h2>Your workspace</h2>
+            <p>Choose an area to get started.</p>
+          </div>
         </div>
         <div class="workspace-grid">
           <a class="workspace-card" ui-sref="dashboard.employeeMaster.list">
             <span class="card-icon card-icon-red" aria-hidden="true">♙</span>
-            <span class="card-title">Employee Master</span><span class="card-description">Your employee information</span><span class="card-arrow" aria-hidden="true">→</span>
+            <span class="card-title">Employee Master</span><span class="card-description">Your employee
+              information</span><span class="card-arrow" aria-hidden="true">→</span>
           </a>
-          <a class="workspace-card" ui-sref="dashboard.salaryManagement">
+          <a class="workspace-card" ui-sref="dashboard.salaryManagement.list">
             <span class="card-icon card-icon-peach" aria-hidden="true">▤</span>
-            <span class="card-title">Salary Management</span><span class="card-description">Salary details and records</span><span class="card-arrow" aria-hidden="true">→</span>
+            <span class="card-title">Salary Management</span><span class="card-description">Salary details and
+              records</span><span class="card-arrow" aria-hidden="true">→</span>
           </a>
-          <a class="workspace-card" ui-sref="dashboard.leaveManagement">
+          <a class="workspace-card" ui-sref="dashboard.leaveManagement.list">
             <span class="card-icon card-icon-yellow" aria-hidden="true">▣</span>
-            <span class="card-title">Leave Management</span><span class="card-description">Time away and leave details</span><span class="card-arrow" aria-hidden="true">→</span>
+            <span class="card-title">Leave Management</span><span class="card-description">Time away and leave
+              details</span><span class="card-arrow" aria-hidden="true">→</span>
           </a>
-          <a class="workspace-card" ui-sref="dashboard.payments">
+          <a class="workspace-card" ui-sref="dashboard.payments.list">
             <span class="card-icon card-icon-green" aria-hidden="true">↗</span>
-            <span class="card-title">Payments</span><span class="card-description">Your payment information</span><span class="card-arrow" aria-hidden="true">→</span>
+            <span class="card-title">Payments</span><span class="card-description">Your payment information</span><span
+              class="card-arrow" aria-hidden="true">→</span>
           </a>
-          <a class="workspace-card" ui-sref="dashboard.paymentSlips">
+          <a class="workspace-card" ui-sref="dashboard.paymentSlips.list">
             <span class="card-icon card-icon-blue" aria-hidden="true">▧</span>
-            <span class="card-title">Payment Slips</span><span class="card-description">View your payment slips</span><span class="card-arrow" aria-hidden="true">→</span>
+            <span class="card-title">Payment Slips</span><span class="card-description">View your payment
+              slips</span><span class="card-arrow" aria-hidden="true">→</span>
           </a>
         </div>
       </section>

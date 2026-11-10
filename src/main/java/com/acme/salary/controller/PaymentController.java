@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,11 @@ public class PaymentController {
     public ResponseEntity<Page<PaymentDto>> getPayments(
             @PathVariable String employeeCode,
             @PageableDefault(size = 20, sort = "periodStart", direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(paymentService.getPayments(employeeCode, pageable));
+        Pageable cappedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                Math.min(pageable.getPageSize(), 100),
+                pageable.getSort());
+        return ResponseEntity.ok(paymentService.getPayments(employeeCode, cappedPageable));
     }
 
     @Operation(summary = "Record a payment for a salary and pay period. The amounts are copied from the salary, and the paid date and time are set by the system")

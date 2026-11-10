@@ -1,0 +1,67 @@
+<section class="employee-page leave-page">
+  <div class="employee-page-heading">
+    <div>
+      <p class="eyebrow">TIME OFF &amp; ATTENDANCE</p>
+      <h1>Leave Management</h1>
+      <p class="employee-page-subtitle">Review leave balances, record leave, and view leave history.</p>
+    </div>
+  </div>
+
+  <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
+
+  <section class="employee-panel salary-search-panel">
+    <div class="salary-search-form leave-employee-select">
+      <label class="salary-search-field">
+        <span>Employee Code</span>
+        <select ng-model="employeeCode" ng-change="loadAvailableLeaves()"
+          ng-options="employee.employeeCode as (employee.employeeCode + ' — ' + employee.firstName + ' ' + employee.lastName) for employee in employees"
+          ng-disabled="loadingEmployees">
+          <option value="">{{ loadingEmployees ? 'Loading employees...' : 'Select an employee' }}</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="employee-panel salary-list-panel" ng-if="employeeCode">
+    <div class="salary-list-heading">
+      <div>
+        <h2>Available Leaves</h2>
+        <p>Employee code <strong>{{ employeeCode }}</strong> · {{ availableLeaves.length }} leave type(s)</p>
+      </div>
+      <div class="salary-list-actions">
+        <button class="button button-secondary" type="button" ng-click="showHistory()" ng-disabled="loadingLeaves">Leave
+          History</button>
+        <button class="button button-primary" type="button" ng-click="addLeave()" ng-disabled="loadingLeaves">Add
+          Leave</button>
+      </div>
+    </div>
+
+    <div class="employee-table-wrap">
+      <table class="employee-table leave-table">
+        <thead>
+          <tr>
+            <th>Leave Type</th>
+            <th>Available Leaves</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-if="loadingLeaves">
+            <td class="table-message" colspan="3">Loading available leaves...</td>
+          </tr>
+          <tr ng-if="!loadingLeaves && availableLeaves.length === 0">
+            <td class="table-message" colspan="3">No available leave records found.</td>
+          </tr>
+          <tr class="employee-row leave-clickable-row" role="link" tabindex="0"
+            ng-repeat="balance in availableLeaves track by balance.leaveType" ng-click="openAvailableLeaves(balance)"
+            ng-keydown="$event.keyCode === 13 && openAvailableLeaves(balance)"
+            aria-label="View {{ balance.leaveType }} available leaves">
+            <td><span class="employee-code">{{ balance.leaveType }}</span></td>
+            <td>{{ balance.availableLeaves }}</td>
+            <td><span class="leave-row-action">View details <span aria-hidden="true">→</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
