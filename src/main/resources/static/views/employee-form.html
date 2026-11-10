@@ -11,7 +11,7 @@
 
   <p class="employee-alert employee-alert-error" role="alert" ng-if="error">{{ error }}</p>
 
-  <form name="employeeForm" class="employee-panel employee-form-panel" ng-submit="save()" novalidate>
+  <form name="employeeForm" class="employee-panel employee-form-panel" ng-submit="save(employeeForm)" novalidate>
     <div class="panel-heading">
       <div>
         <h2>Personal information</h2>

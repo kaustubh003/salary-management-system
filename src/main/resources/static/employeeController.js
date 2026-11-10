@@ -214,8 +214,8 @@ app.controller('EmployeeDetailsController', function ($scope, $rootScope, $state
         $scope.loading = false;
     });
 
-    $scope.save = function () {
-        if ($scope.employeeForm.$invalid) {
+    $scope.save = function (form) {
+        if (!form || form.$invalid) {
             return;
         }
         $scope.saving = true;
@@ -256,8 +256,8 @@ app.controller('AddEmployeeController', function ($scope, $rootScope, $state, Em
     $scope.saving = false;
     $scope.error = '';
 
-    $scope.save = function () {
-        if ($scope.employeeForm.$invalid) {
+    $scope.save = function (form) {
+        if (!form || form.$invalid) {
             return;
         }
         $scope.saving = true;

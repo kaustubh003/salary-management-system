@@ -15,7 +15,7 @@
   <div class="employee-panel loading-panel" ng-if="loading">Loading employee details...</div>
 
   <div ng-if="employee && !loading">
-    <form name="employeeForm" class="employee-panel employee-form-panel" ng-submit="save()" novalidate>
+    <form name="employeeForm" class="employee-panel employee-form-panel" ng-submit="save(employeeForm)" novalidate>
       <div class="panel-heading">
         <div>
           <h2>Personal information</h2>
